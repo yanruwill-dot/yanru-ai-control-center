@@ -4,10 +4,12 @@
 
 ## 入口
 
-- `index.html`：中控台主页面
-- `outputs/html/wechat-output.html`：公众号高级排版
-- `outputs/html/xhs-output.html`：小红书高级排版
-- `outputs/html/strategy-plan.html`：整体方案流水线
+- 中控台主页面：https://yanruwill-dot.github.io/yanru-ai-control-center/
+- 行业热点内容中台：https://yanruwill-dot.github.io/yanru-ai-control-center/industry-hotspot-html-factory.html
+- 整体方案 HTML：https://yanruwill-dot.github.io/yanru-ai-control-center/industry-hotspot-solution.html
+- 公众号高级排版：https://yanruwill-dot.github.io/yanru-ai-control-center/outputs/html/wechat-output.html
+- 小红书高级排版：https://yanruwill-dot.github.io/yanru-ai-control-center/outputs/html/xhs-output.html
+- 整体方案流水线：https://yanruwill-dot.github.io/yanru-ai-control-center/outputs/html/strategy-plan.html
 
 ## 发布边界
 
