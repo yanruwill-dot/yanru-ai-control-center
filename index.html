@@ -1609,7 +1609,7 @@
     const agents = [
       { id: "brand", name: "品牌总", label: "品牌", role: "负责品牌基因定位，先定人群、价值主张、表达边界，再让后面的选题、文章、图片和发布不跑偏。", x: 18, y: 34, color: "#63d471", queue: 3, rate: "96%", risk: "低", speed: "2.1s", avatar: "牌", work: ["提炼品牌人设、主张和禁区", "把课程价值翻译成老板能懂的话", "给写手哥和图片姐下发统一表达口径"], files: [{ title: "品牌基因定位.md", path: "outputs/brand-positioning.md", version: "v1.0" }, { title: "整体方案.html", path: "outputs/html/strategy-plan.html#education", version: "HTML" }] },
       { id: "topic", name: "选题哥", label: "选题", role: "负责搜集信息、看对标、拆目标任务，把模糊方向变成能写、能画、能发的任务单。", x: 34, y: 58, color: "#ff756f", queue: 5, rate: "91%", risk: "中", speed: "3.8s", avatar: "题", work: ["整理目标读者和痛点场景", "把素材拆成公众号、小红书、图片任务", "给写手哥下达文章目标和证据要求"], files: [{ title: "选题任务单.md", path: "outputs/topic-brief.md", version: "v1.0" }] },
-      { id: "writer", name: "写手哥", label: "写作", role: "负责写公众号长文、小红书笔记和标题，把品牌总的判断写成读者愿意看完的内容。", x: 50, y: 48, color: "#ffb45f", queue: 4, rate: "94%", risk: "低", speed: "4.2s", avatar: "写", work: ["生成公众号成稿", "拆出小红书图文版", "给每个平台保留不同开头和行动句"], files: [{ title: "公众号成稿.md", path: "outputs/wechat-public-account.md", version: "v1.0" }, { title: "公众号高级排版.html", path: "outputs/html/wechat-output.html#education", version: "HTML" }, { title: "小红书高级排版.html", path: "outputs/html/xhs-output.html#education", version: "HTML" }] },
+      { id: "writer", name: "写手哥", label: "写作", role: "负责写公众号长文、小红书笔记和标题，把品牌总的判断写成读者愿意看完的内容。", x: 50, y: 48, color: "#ffb45f", queue: 4, rate: "94%", risk: "低", speed: "4.2s", avatar: "写", work: ["生成公众号成稿", "拆出小红书图文版", "给每个平台保留不同开头和行动句"], files: [{ title: "公众号成稿.md", path: "outputs/wechat-public-account.md", version: "v1.0" }] },
       { id: "image", name: "图片姐", label: "图片", role: "负责生图、信息卡、首图和排版，把文章主张变成能被一眼看懂的视觉资产。", x: 66, y: 58, color: "#6ed6ff", queue: 4, rate: "89%", risk: "中", speed: "5.6s", avatar: "图", work: ["拆分首图、正文配图、信息卡", "为小红书准备图文页顺序", "检查文字不压线、不溢出"], files: [{ title: "图片排版清单.md", path: "outputs/image-layout-brief.md", version: "v1.0" }] },
       { id: "publisher", name: "发帖工具人", label: "发布", role: "负责公众号、小红书等平台发文脚本，也把 S姐、M姐的分发动作整理成可执行清单。", x: 82, y: 36, color: "#b7e46b", queue: 3, rate: "92%", risk: "低", speed: "3.0s", avatar: "发", work: ["生成公众号发布脚本", "生成小红书发布脚本", "整理 S姐/M姐分发口径和检查步骤"], files: [{ title: "平台发文脚本.md", path: "outputs/platform-publish-scripts.md", version: "v1.0" }, { title: "整体方案.html", path: "outputs/html/strategy-plan.html#education", version: "HTML" }] },
       { id: "review", name: "复盘哥", label: "复盘", role: "负责数据汇总分析，回看阅读、点击、收藏、转化和发布动作，给下一轮选题喂反馈。", x: 50, y: 78, color: "#9b8cff", queue: 2, rate: "88%", risk: "低", speed: "6.4s", avatar: "盘", work: ["汇总公众号、小红书和分发数据", "判断标题、图片、开头哪个环节掉点", "输出下一轮改进建议"], files: [{ title: "复盘数据分析.md", path: "outputs/review-analysis.md", version: "v1.0" }] }
@@ -1732,7 +1732,7 @@
       const industry = getIndustry();
       const hotspots = liveHotspots[industry.slug] || industry.hotspots;
       const source = liveSources[industry.slug] || industry.source;
-      document.getElementById("industrySignal").textContent = `${source}。5 个智能体自动协作生成公众号、小红书和整体方案 HTML。`;
+      document.getElementById("industrySignal").textContent = `${source}。5 个智能体自动协作生成内容任务和整体方案 HTML。`;
       document.getElementById("hotspotGrid").innerHTML = hotspots.map(item => `
         <article class="hotspot-card">
           <small>${item.tag}</small>
@@ -1741,8 +1741,6 @@
         </article>
       `).join("");
       document.getElementById("outputDock").innerHTML = [
-        { title: "公众号高级排版", path: `outputs/html/wechat-output.html#${industry.slug}`, desc: "长文结构 + 首屏钩子 + 转化收口" },
-        { title: "小红书高级排版", path: `outputs/html/xhs-output.html#${industry.slug}`, desc: "首图标题 + 图文页脚本 + 话题" },
         { title: "整体方案 HTML", path: `outputs/html/strategy-plan.html#${industry.slug}`, desc: "定位、分工、排期、验收指标" }
       ].map(item => `
         <a href="${item.path}" target="_blank">
