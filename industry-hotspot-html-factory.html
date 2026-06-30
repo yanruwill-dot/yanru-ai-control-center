@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>行业热点内容中台</title>
+  <style>
+    :root {
+      --bg: #0d1110;
+      --panel: #151b18;
+      --panel-2: #1b241f;
+      --paper: #f7f0df;
+      --paper-2: #fffaf0;
+      --ink: #121917;
+      --muted: #8c9a91;
+      --line: rgba(255, 255, 255, .11);
+      --line-dark: rgba(18, 25, 23, .15);
+      --green: #7cffb2;
+      --gold: #e8bc6a;
+      --blue: #66d9ff;
+      --red: #ff7a6b;
+      --shadow: 0 28px 80px rgba(0, 0, 0, .36);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: #eef6ee;
+      background:
+        radial-gradient(circle at 16% 10%, rgba(124, 255, 178, .15), transparent 30%),
+        radial-gradient(circle at 88% 8%, rgba(232, 188, 106, .13), transparent 28%),
+        linear-gradient(135deg, #0a0d0c 0%, #111815 54%, #1a130b 100%);
+      font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      letter-spacing: 0;
+    }
+
+    button, select, input, textarea { font: inherit; letter-spacing: 0; }
+    button { cursor: pointer; }
+    a { color: inherit; }
+
+    .app {
+      width: min(1680px, calc(100vw - 28px));
+      margin: 0 auto;
+      padding: 18px 0 28px;
+    }
+
+    .topbar {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 18px;
+      align-items: center;
+      min-height: 84px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(21, 27, 24, .82);
+      box-shadow: var(--shadow);
+      padding: 18px 22px;
+      backdrop-filter: blur(18px);
+    }
+
+    .brandline {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .mark {
+      width: 46px;
+      height: 46px;
+      border-radius: 7px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--green), var(--gold));
+      color: #08100d;
+      font-weight: 1000;
+      box-shadow: 0 14px 34px rgba(124, 255, 178, .2);
+      flex: 0 0 46px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(24px, 3.4vw, 46px);
+      line-height: 1.03;
+      font-weight: 1000;
+    }
+
+    .topbar p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      line-height: 1.55;
+      max-width: 900px;
+      font-size: 14px;
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .btn {
+      min-height: 42px;
+      border: 1px solid rgba(124, 255, 178, .38);
+      border-radius: 6px;
+      background: var(--green);
+      color: #07100d;
+      padding: 0 16px;
+      font-size: 13px;
+      font-weight: 900;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 16px 34px rgba(124, 255, 178, .18);
+    }
+
+    .btn.secondary {
+      background: transparent;
+      color: #e9f6ef;
+      border-color: var(--line);
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: 310px minmax(420px, 1fr) minmax(440px, .92fr);
+      gap: 16px;
+      margin-top: 16px;
+      align-items: start;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(21, 27, 24, .88);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+      overflow: hidden;
+    }
+
+    .panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      min-height: 58px;
+      padding: 16px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .panel-head h2 {
+      margin: 0;
+      font-size: 16px;
+      line-height: 1.2;
+      font-weight: 1000;
+    }
+
+    .badge {
+      border: 1px solid rgba(124, 255, 178, .28);
+      border-radius: 999px;
+      padding: 5px 9px;
+      color: var(--green);
+      background: rgba(124, 255, 178, .07);
+      font-size: 11px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .controls {
+      padding: 16px;
+      display: grid;
+      gap: 14px;
+    }
+
+    label {
+      display: grid;
+      gap: 7px;
+      color: #dce9e0;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    select, input, textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      outline: none;
+      background: rgba(255, 255, 255, .06);
+      color: #f4fff8;
+      padding: 12px;
+      font-size: 13px;
+    }
+
+    select option { background: #121917; color: #f4fff8; }
+    textarea { min-height: 114px; resize: vertical; line-height: 1.7; }
+
+    .industry-grid {
+      display: grid;
+      gap: 8px;
+    }
+
+    .industry-card {
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: rgba(255, 255, 255, .045);
+      padding: 11px;
+      text-align: left;
+      color: #edf8f0;
+      transition: background .18s ease, border-color .18s ease, transform .18s ease;
+    }
+
+    .industry-card:hover { transform: translateX(2px); }
+    .industry-card.active {
+      border-color: rgba(124, 255, 178, .52);
+      background: rgba(124, 255, 178, .11);
+    }
+
+    .industry-card b {
+      display: block;
+      font-size: 13px;
+      margin-bottom: 5px;
+    }
+
+    .industry-card span {
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.45;
+    }
+
+    .seg {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .seg button {
+      min-height: 38px;
+      border: 0;
+      border-right: 1px solid var(--line);
+      background: transparent;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .seg button:last-child { border-right: 0; }
+    .seg button.active { background: var(--green); color: #07100d; }
+
+    .radar {
+      padding: 16px;
+    }
+
+    .signal-meter {
+      position: relative;
+      height: 184px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background:
+        linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px),
+        linear-gradient(0deg, rgba(255,255,255,.05) 1px, transparent 1px),
+        radial-gradient(circle at 50% 50%, rgba(124,255,178,.12), transparent 58%);
+      background-size: 36px 36px, 36px 36px, auto;
+      overflow: hidden;
+    }
+
+    .pulse {
+      position: absolute;
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 0 10px rgba(124,255,178,.08), 0 0 34px rgba(124,255,178,.4);
+      animation: pulse 2.4s ease-in-out infinite;
+    }
+
+    .pulse:nth-child(1) { left: 20%; top: 28%; }
+    .pulse:nth-child(2) { left: 62%; top: 34%; animation-delay: .4s; background: var(--gold); }
+    .pulse:nth-child(3) { left: 42%; top: 70%; animation-delay: .8s; background: var(--blue); }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(.9); opacity: .78; }
+      50% { transform: scale(1.18); opacity: 1; }
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      padding: 0 16px 16px;
+    }
+
+    .stat {
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: rgba(255,255,255,.045);
+      padding: 11px;
+    }
+
+    .stat small {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      margin-bottom: 6px;
+    }
+
+    .stat strong {
+      font-size: 20px;
+      color: #fff;
+    }
+
+    .feed {
+      display: grid;
+      gap: 10px;
+      padding: 16px;
+    }
+
+    .source-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255,255,255,.05);
+      padding: 14px;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 12px;
+      align-items: start;
+    }
+
+    .source-rank {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      display: grid;
+      place-items: center;
+      background: rgba(124,255,178,.12);
+      color: var(--green);
+      font-weight: 1000;
+      font-size: 12px;
+    }
+
+    .source-card h3 {
+      margin: 0 0 6px;
+      font-size: 15px;
+      line-height: 1.45;
+    }
+
+    .source-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.65;
+    }
+
+    .source-score {
+      min-width: 50px;
+      border-radius: 6px;
+      padding: 7px 8px;
+      background: #080d0b;
+      color: var(--gold);
+      text-align: center;
+      font-weight: 1000;
+      font-size: 13px;
+    }
+
+    .angles {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      padding: 0 16px 16px;
+    }
+
+    .angle {
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: rgba(255,255,255,.045);
+      padding: 12px;
+    }
+
+    .angle small {
+      color: var(--green);
+      font-weight: 900;
+      font-size: 11px;
+    }
+
+    .angle b {
+      display: block;
+      margin-top: 8px;
+      font-size: 14px;
+      line-height: 1.35;
+    }
+
+    .output {
+      background: var(--paper);
+      color: var(--ink);
+      min-height: 780px;
+    }
+
+    .output .panel-head {
+      background: #111916;
+      color: #f7f0df;
+    }
+
+    .mini-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .mini {
+      min-height: 34px;
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 6px;
+      background: rgba(255,255,255,.08);
+      color: #f7f0df;
+      padding: 0 11px;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .sheet-wrap {
+      padding: 18px;
+      background: #e7dcc7;
+    }
+
+    .article-sheet {
+      max-width: 780px;
+      margin: 0 auto;
+      background:
+        linear-gradient(90deg, rgba(15, 123, 98, .11), transparent 42%),
+        var(--paper-2);
+      border: 1px solid var(--line-dark);
+      box-shadow: 0 22px 60px rgba(18,25,23,.16);
+      padding: 34px;
+      font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    }
+
+    .article-kicker {
+      display: flex;
+      gap: 9px;
+      align-items: center;
+      color: #0f6c56;
+      font-size: 12px;
+      font-weight: 1000;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .article-kicker:before {
+      content: "";
+      width: 24px;
+      height: 2px;
+      background: currentColor;
+    }
+
+    .article-sheet h2 {
+      margin: 18px 0 12px;
+      font-size: clamp(30px, 4vw, 52px);
+      line-height: 1.05;
+      letter-spacing: 0;
+      font-weight: 1000;
+    }
+
+    .lead {
+      color: #33423c;
+      font-size: 17px;
+      line-height: 1.85;
+      margin: 0;
+    }
+
+    .brief-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin: 25px 0;
+    }
+
+    .brief {
+      border-left: 4px solid #0f7b62;
+      background: rgba(15,123,98,.08);
+      padding: 13px;
+    }
+
+    .brief small {
+      display: block;
+      color: #66746d;
+      font-size: 12px;
+      margin-bottom: 5px;
+    }
+
+    .brief b {
+      display: block;
+      font-size: 15px;
+      line-height: 1.42;
+    }
+
+    .article-sheet h3 {
+      margin: 30px 0 10px;
+      font-size: 23px;
+      line-height: 1.3;
+      font-weight: 1000;
+    }
+
+    .article-sheet p, .article-sheet li {
+      color: #26342e;
+      font-size: 15px;
+      line-height: 1.9;
+    }
+
+    .quote-box {
+      margin: 24px 0;
+      border: 1px solid rgba(181,115,42,.34);
+      background: rgba(181,115,42,.12);
+      padding: 18px;
+      font-size: 20px;
+      line-height: 1.55;
+      font-weight: 1000;
+    }
+
+    .source-index {
+      margin-top: 22px;
+      padding-top: 16px;
+      border-top: 1px solid var(--line-dark);
+    }
+
+    .codebox {
+      display: none;
+    }
+
+    .toast {
+      position: fixed;
+      right: 22px;
+      bottom: 22px;
+      border: 1px solid rgba(124,255,178,.35);
+      border-radius: 7px;
+      background: #101714;
+      color: #f7f0df;
+      box-shadow: var(--shadow);
+      padding: 13px 16px;
+      opacity: 0;
+      transform: translateY(12px);
+      transition: .2s ease;
+      pointer-events: none;
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+    .toast.show { opacity: 1; transform: translateY(0); }
+
+    @media (max-width: 1180px) {
+      .workspace { grid-template-columns: 300px 1fr; }
+      .output { grid-column: 1 / -1; }
+    }
+
+    @media (max-width: 760px) {
+      .app { width: min(100vw - 18px, 560px); padding-top: 9px; }
+      .topbar, .workspace { grid-template-columns: 1fr; }
+      .top-actions, .mini-actions { justify-content: flex-start; }
+      .stats, .angles, .brief-grid { grid-template-columns: 1fr; }
+      .source-card { grid-template-columns: 1fr; }
+      .article-sheet { padding: 22px; }
+      .sheet-wrap { padding: 10px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brandline">
+        <div class="mark">OS</div>
+        <div>
+          <h1>行业热点内容中台</h1>
+          <p>给老板看的不是新闻列表，而是：这个行业正在变什么、该抢哪个角度、今天能产出哪一篇 HTML 稿。</p>
+        </div>
+      </div>
+      <div class="top-actions">
+        <button class="btn" id="runNow">抓取热点</button>
+        <a class="btn secondary" href="industry-hotspot-solution.html">整体方案</a>
+        <a class="btn secondary" href="index.html">返回看板</a>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <aside class="panel">
+        <div class="panel-head">
+          <h2>行业雷达</h2>
+          <span class="badge" id="sourceState">样例待命</span>
+        </div>
+        <div class="controls">
+          <div class="industry-grid" id="industryGrid"></div>
+          <label>时间范围
+            <select id="timeSelect">
+              <option value="1d">最近 24 小时</option>
+              <option value="3d">最近 3 天</option>
+              <option value="7d" selected>最近 7 天</option>
+              <option value="14d">最近 14 天</option>
+            </select>
+          </label>
+          <label>附加关键词
+            <input id="keywordInput" placeholder="例如 policy, export, agent">
+          </label>
+          <label>老板口径
+            <textarea id="briefInput">先讲判断，不讲工具。重点看收入、成本、团队能力和长期竞争力。热点只做入口，最终要落到获客、成交、交付和复盘。</textarea>
+          </label>
+          <div class="seg" aria-label="稿件深度">
+            <button type="button" data-depth="short">快稿</button>
+            <button type="button" data-depth="standard" class="active">标准</button>
+            <button type="button" data-depth="deep">深稿</button>
+          </div>
+          <button class="btn" id="fetchBtn">生成本轮内容</button>
+          <button class="btn secondary" id="sampleBtn">使用样例</button>
+        </div>
+        <div class="radar">
+          <div class="signal-meter" aria-label="行业信号雷达">
+            <span class="pulse"></span>
+            <span class="pulse"></span>
+            <span class="pulse"></span>
+          </div>
+        </div>
+        <div class="stats">
+          <div class="stat"><small>信号</small><strong id="statSignals">3</strong></div>
+          <div class="stat"><small>角度</small><strong>3</strong></div>
+          <div class="stat"><small>成品</small><strong>HTML</strong></div>
+        </div>
+      </aside>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2>热点证据与选题角度</h2>
+          <span class="badge" id="runMeta">离线样例</span>
+        </div>
+        <div class="feed" id="sourceList"></div>
+        <div class="angles" id="angleList"></div>
+      </section>
+
+      <section class="panel output">
+        <div class="panel-head">
+          <h2>可发布 HTML 稿</h2>
+          <div class="mini-actions">
+            <button class="mini" id="copyHtml">复制</button>
+            <button class="mini" id="downloadHtml">下载</button>
+            <button class="mini" id="printHtml">打印</button>
+            <button class="mini" id="openApiBtn">API</button>
+          </div>
+        </div>
+        <div class="sheet-wrap" id="preview"></div>
+        <textarea class="codebox" id="htmlCode" spellcheck="false"></textarea>
+      </section>
+    </main>
+  </div>
+  <div class="toast" id="toast">已完成</div>
+
+  <script>
+    const industries = [
+      { id: "ai-education", name: "AI 教育", desc: "课程、学校、企业培训", query: '("artificial intelligence" OR AI) (education OR training OR course OR school)' },
+      { id: "crossborder", name: "跨境 B2B", desc: "外贸、询盘、产品页", query: '("cross border" OR export OR ecommerce OR "global trade") (manufacturer OR B2B OR supplier)' },
+      { id: "local-service", name: "本地生活", desc: "门店、私域、到店转化", query: '("local services" OR restaurant OR retail OR store) (AI OR automation OR marketing)' },
+      { id: "beauty", name: "美业护肤", desc: "诊断、信任、复购", query: '("beauty tech" OR skincare OR dermatology OR cosmetics) (AI OR personalization OR retail)' },
+      { id: "manufacturing", name: "制造业", desc: "工厂、供应链、销售工程", query: '(manufacturing OR factory OR industrial) (AI OR automation OR robotics OR supply chain)' },
+      { id: "new-energy", name: "新能源", desc: "储能、光伏、政策", query: '("new energy" OR battery OR solar OR storage OR EV) (market OR policy OR technology)' },
+      { id: "finance-content", name: "金融内容", desc: "投研、合规、报告", query: '(finance OR investment OR banking) (AI OR automation OR reporting OR content)' },
+      { id: "private-board", name: "企业私董会", desc: "老板、组织、增长", query: '("business owners" OR entrepreneur OR CEO) (AI OR transformation OR productivity)' }
+    ];
+
+    const fallbackNews = {
+      "ai-education": [
+        ["AI course demand shifts from tool demos to measurable outcomes", "买课的人不再只问会不会用工具，而是问能不能交付结果。", "EdTech Monitor"],
+        ["Schools ask for AI policy before large-scale classroom rollout", "学校端先要规则、评价和老师培训，说明市场从尝鲜进入治理阶段。", "Global Education Review"],
+        ["Training providers package AI workflow courses for business teams", "企业买的不是提示词课，是能复制到岗位里的流程课。", "Learning Business Daily"]
+      ],
+      "crossborder": [
+        ["Export suppliers use AI to shorten RFQ and catalog production", "外贸老板最痛的不是缺内容，而是产品知识不能快速变成买家语言。", "Trade Tech Brief"],
+        ["Cross-border brands adjust messaging around tariffs and logistics", "信任、交期、成本透明度正在变成询盘转化核心。", "Global Commerce Desk"],
+        ["Manufacturers test AI agents for sales enablement", "销售能力开始被系统化，业务员经验不再只能靠人带人。", "B2B Growth Watch"]
+      ],
+      "local-service": [
+        ["Local stores move from coupons to private-domain operations", "门店增长从一次性优惠转向长期私域和内容触达。", "Retail Signal"],
+        ["Restaurants test AI for menu, review and staffing workflows", "本地商家要的是少请人还能稳定运营，不是炫技。", "Service Business Review"],
+        ["Neighborhood businesses need content engines, not one-off ads", "老板个人可信度和持续内容，比单条广告更关键。", "Local Growth Journal"]
+      ],
+      "beauty": [
+        ["AI skin analysis tools become retail conversion front-end", "诊断变成销售入口，信任从顾问话术转向可视化证据。", "Beauty Tech Today"],
+        ["Personalized skincare content turns into sales script", "个性化建议正在替代泛泛功效宣传。", "Cosmetics Business Wire"],
+        ["Clinics use visual education to reduce consultation friction", "医美转化越来越依赖讲清风险、过程和真实预期。", "Aesthetic Market Note"]
+      ],
+      "manufacturing": [
+        ["Factories deploy AI assistants around maintenance and inspection", "工厂 AI 的入口不是宏大转型，而是停机、质检、巡检这些硬成本。", "Industry Automation Review"],
+        ["Supply chain teams ask for smaller, verifiable AI pilots", "制造业老板更相信小闭环验证，而不是大口号。", "Manufacturing Weekly"],
+        ["Industrial sales teams turn technical specs into buyer-facing content", "技术资料变买家语言，是工业获客的老问题，也是 AI 的好切口。", "Factory Growth Desk"]
+      ],
+      "new-energy": [
+        ["Energy storage competition shifts to integration and financing", "储能竞争不只看设备，更看融资、并网和全周期成本。", "Energy Market Watch"],
+        ["EV supply chain recalibrates around policy and demand volatility", "政策和需求波动让企业更需要快速解释市场变化。", "CleanTech Brief"],
+        ["Solar installers need clearer ROI content for enterprise buyers", "企业客户要看投资回收和风险，不吃概念。", "Renewable Business Note"]
+      ],
+      "finance-content": [
+        ["AI reporting tools enter analyst workflows", "金融内容的价值从堆信息转向形成判断和可追溯依据。", "Market Operations Review"],
+        ["Compliance pressure reshapes finance content production", "合规要求让来源、引用和审批变成内容生产的一部分。", "FinContent Watch"],
+        ["Investment education brands package research into visual explainers", "复杂投研需要更强的图文解释能力。", "Advisor Media Note"]
+      ],
+      "private-board": [
+        ["Business owners ask how AI changes team structure", "老板关心的不是工具，而是团队结构和责任边界会不会重写。", "CEO Productivity Brief"],
+        ["Consultants package AI transformation into owner-level playbooks", "企业咨询正在从讲趋势转向给第一周动作清单。", "Advisory Market Watch"],
+        ["Small companies seek AI systems without hiring full teams", "小公司想要的是用系统补团队能力，而不是再招一堆人。", "SMB Strategy Journal"]
+      ]
+    };
+
+    let currentIndustry = industries[0];
+    let currentDepth = "standard";
+    let currentItems = [];
+    let currentSource = "sample";
+    let lastApiUrl = "";
+
+    const industryGrid = document.getElementById("industryGrid");
+    const sourceList = document.getElementById("sourceList");
+    const angleList = document.getElementById("angleList");
+    const preview = document.getElementById("preview");
+    const htmlCode = document.getElementById("htmlCode");
+    const toast = document.getElementById("toast");
+
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>"']/g, char => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
+      })[char]);
+    }
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add("show");
+      clearTimeout(window.toastTimer);
+      window.toastTimer = setTimeout(() => toast.classList.remove("show"), 1700);
+    }
+
+    function renderIndustries() {
+      industryGrid.innerHTML = industries.map(item => `
+        <button class="industry-card ${item.id === currentIndustry.id ? "active" : ""}" data-industry="${item.id}">
+          <b>${escapeHtml(item.name)}</b>
+          <span>${escapeHtml(item.desc)}</span>
+        </button>
+      `).join("");
+      industryGrid.querySelectorAll("[data-industry]").forEach(button => {
+        button.addEventListener("click", () => {
+          currentIndustry = industries.find(item => item.id === button.dataset.industry) || industries[0];
+          currentSource = "sample";
+          currentItems = fallbackItems();
+          renderAll();
+        });
+      });
+    }
+
+    function fallbackItems() {
+      return (fallbackNews[currentIndustry.id] || fallbackNews["ai-education"]).map((item, index) => ({
+        title: item[0],
+        desc: item[1],
+        domain: item[2],
+        date: ["今天", "昨天", "本周"][index] || "本周",
+        url: "#",
+        score: 94 - index * 6
+      }));
+    }
+
+    function dateLabel(value) {
+      const text = String(value || "");
+      return text.length >= 8 ? `${text.slice(4, 6)}/${text.slice(6, 8)}` : "最新";
+    }
+
+    function normalizeArticle(article, index) {
+      return {
+        title: article.title || `行业信号 ${index + 1}`,
+        desc: "公开新闻源返回结果，发布前需要再打开原文核验。",
+        domain: article.domain || article.sourceCommonName || article.sourceCountry || "公开来源",
+        date: dateLabel(article.seendate || article.date),
+        url: article.url || article.shareurl || "#",
+        score: Math.max(66, 96 - index * 5)
+      };
+    }
+
+    function angles(items) {
+      return [
+        { name: "焦虑", text: `别人已经把 ${currentIndustry.name} 的变化接到业务流程里。` },
+        { name: "机会", text: items[0]?.desc || "用一个小场景证明它能带来线索、成交或效率。" },
+        { name: "方法", text: "给老板一张今天就能派单的三步动作表。" }
+      ];
+    }
+
+    function renderSources() {
+      document.getElementById("statSignals").textContent = currentItems.length;
+      sourceList.innerHTML = currentItems.map((item, index) => `
+        <article class="source-card">
+          <div class="source-rank">${index + 1}</div>
+          <div>
+            <h3>${escapeHtml(item.title)}</h3>
+            <p>${escapeHtml(item.desc)}<br>${escapeHtml(item.domain)} / ${escapeHtml(item.date)} ${item.url !== "#" ? `<a href="${item.url}" target="_blank" rel="noreferrer">打开</a>` : ""}</p>
+          </div>
+          <div class="source-score">${item.score}</div>
+        </article>
+      `).join("");
+      angleList.innerHTML = angles(currentItems).map(item => `
+        <article class="angle">
+          <small>${escapeHtml(item.name)}</small>
+          <b>${escapeHtml(item.text)}</b>
+        </article>
+      `).join("");
+    }
+
+    async function fetchHotspots() {
+      const custom = document.getElementById("keywordInput").value.trim();
+      const timespan = document.getElementById("timeSelect").value;
+      const query = custom ? `(${currentIndustry.query}) ${custom}` : currentIndustry.query;
+      const params = new URLSearchParams({
+        query,
+        mode: "artlist",
+        format: "json",
+        maxrecords: "12",
+        timespan,
+        sort: "datedesc"
+      });
+      lastApiUrl = `https://api.gdeltproject.org/api/v2/doc/doc?${params.toString()}`;
+      document.getElementById("sourceState").textContent = "抓取中";
+      document.getElementById("runMeta").textContent = `${currentIndustry.name} / ${timespan}`;
+      try {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 12000);
+        const response = await fetch(lastApiUrl, { signal: controller.signal });
+        clearTimeout(timer);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        const articles = Array.isArray(data.articles) ? data.articles : [];
+        if (!articles.length) throw new Error("没有返回文章");
+        currentSource = "live";
+        currentItems = articles.slice(0, 6).map(normalizeArticle);
+        document.getElementById("sourceState").textContent = "实时";
+        document.getElementById("runMeta").textContent = `已抓取 ${currentItems.length} 条公开新闻`;
+      } catch (error) {
+        currentSource = "sample";
+        currentItems = fallbackItems();
+        document.getElementById("sourceState").textContent = "降级样例";
+        document.getElementById("runMeta").textContent = `实时源失败：${error.message}`;
+      }
+      renderAll(false);
+    }
+
+    function buildArticleHtml() {
+      const brief = document.getElementById("briefInput").value.trim();
+      const selectedAngles = angles(currentItems);
+      const rows = currentItems.slice(0, currentDepth === "deep" ? 5 : 3).map((item, index) => `
+        <li><b>${index + 1}. ${escapeHtml(item.title)}</b><br>${escapeHtml(item.domain)} / ${escapeHtml(item.date)} / 信号 ${item.score}</li>
+      `).join("");
+      return `
+        <article class="article-sheet">
+          <div class="article-kicker">${escapeHtml(currentIndustry.name)} / ${currentSource === "live" ? "公开新闻" : "样例演示"}</div>
+          <h2>${escapeHtml(currentIndustry.name)}的热点，真正要看的是能力重新定价。</h2>
+          <p class="lead">热点本身不值钱。老板要看的，是这个变化会不会改变获客成本、团队效率、交付边界和长期竞争力。</p>
+          <div class="brief-grid">
+            ${selectedAngles.map(item => `<div class="brief"><small>${escapeHtml(item.name)}</small><b>${escapeHtml(item.text)}</b></div>`).join("")}
+          </div>
+          <h3>一、先给判断：不要把热点写成新闻摘要</h3>
+          <p>${escapeHtml(brief)}</p>
+          <p>普通人看到的是信息，老板要看到的是能力差距。AI 不是让所有人平均变强，它会让会提问、会整合、会交付的人跑得更快，也让只会等指令的人更快暴露。</p>
+          <div class="quote-box">内容的任务不是证明你知道新闻，而是证明你能把新闻变成客户愿意相信的判断。</div>
+          <h3>二、再拆成可以发布的三句话</h3>
+          <ul>
+            <li><b>第一句话：</b>这个行业正在从拼人力，转向拼可复制的判断和交付系统。</li>
+            <li><b>第二句话：</b>老板现在该沉淀的不是更多素材，而是能反复产出结果的流程。</li>
+            <li><b>第三句话：</b>今天就把一个热点拆成文章、图卡、销售话术和复盘指标。</li>
+          </ul>
+          <h3>三、最后派单：让智能体团队接住这件事</h3>
+          <p>选题哥追来源，写手哥写判断，图片姐做图卡，发帖工具人拆平台版本，复盘哥记录点击、收藏和咨询。这样热点才会从一次性内容，变成下一轮增长资产。</p>
+          <div class="source-index">
+            <h3>来源索引</h3>
+            <ul>${rows}</ul>
+          </div>
+        </article>
+      `;
+    }
+
+    function renderOutput() {
+      const articleHtml = buildArticleHtml();
+      preview.innerHTML = articleHtml;
+      htmlCode.value = `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${currentIndustry.name}热点内容稿</title>
+  <style>
+    body{margin:0;background:#e7dcc7;padding:24px}
+    .article-sheet{max-width:780px;margin:0 auto;background:linear-gradient(90deg,rgba(15,123,98,.11),transparent 42%),#fffaf0;border:1px solid rgba(18,25,23,.15);box-shadow:0 22px 60px rgba(18,25,23,.16);padding:34px;color:#121917;font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif}
+    .article-kicker{display:flex;gap:9px;align-items:center;color:#0f6c56;font-size:12px;font-weight:1000;letter-spacing:.08em;text-transform:uppercase}.article-kicker:before{content:"";width:24px;height:2px;background:currentColor}
+    h2{margin:18px 0 12px;font-size:48px;line-height:1.05}h3{margin:30px 0 10px;font-size:23px;line-height:1.3}.lead{color:#33423c;font-size:17px;line-height:1.85}.brief-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:25px 0}.brief{border-left:4px solid #0f7b62;background:rgba(15,123,98,.08);padding:13px}.brief small{display:block;color:#66746d;font-size:12px;margin-bottom:5px}.brief b{font-size:15px;line-height:1.42}p,li{color:#26342e;font-size:15px;line-height:1.9}.quote-box{margin:24px 0;border:1px solid rgba(181,115,42,.34);background:rgba(181,115,42,.12);padding:18px;font-size:20px;line-height:1.55;font-weight:1000}.source-index{margin-top:22px;padding-top:16px;border-top:1px solid rgba(18,25,23,.15)}@media(max-width:760px){body{padding:10px}.article-sheet{padding:22px}h2{font-size:34px}.brief-grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+${articleHtml}
+</body>
+</html>`;
+    }
+
+    function renderAll(updateIndustries = true) {
+      if (updateIndustries) renderIndustries();
+      renderSources();
+      renderOutput();
+    }
+
+    function download(name, content) {
+      const blob = new Blob([content], { type: "text/html;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = name;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    document.querySelectorAll("[data-depth]").forEach(button => {
+      button.addEventListener("click", () => {
+        document.querySelectorAll("[data-depth]").forEach(item => item.classList.remove("active"));
+        button.classList.add("active");
+        currentDepth = button.dataset.depth;
+        renderOutput();
+      });
+    });
+
+    document.getElementById("fetchBtn").addEventListener("click", fetchHotspots);
+    document.getElementById("runNow").addEventListener("click", fetchHotspots);
+    document.getElementById("sampleBtn").addEventListener("click", () => {
+      currentSource = "sample";
+      currentItems = fallbackItems();
+      document.getElementById("sourceState").textContent = "样例";
+      document.getElementById("runMeta").textContent = "使用内置样例";
+      renderAll(false);
+    });
+    document.getElementById("briefInput").addEventListener("input", renderOutput);
+    document.getElementById("copyHtml").addEventListener("click", async () => {
+      await navigator.clipboard.writeText(htmlCode.value);
+      showToast("HTML 已复制");
+    });
+    document.getElementById("downloadHtml").addEventListener("click", () => {
+      download(`hotspot-${currentIndustry.id}.html`, htmlCode.value);
+      showToast("HTML 已下载");
+    });
+    document.getElementById("printHtml").addEventListener("click", () => window.print());
+    document.getElementById("openApiBtn").addEventListener("click", () => {
+      if (lastApiUrl) window.open(lastApiUrl, "_blank");
+      else showToast("先抓取一次");
+    });
+
+    currentItems = fallbackItems();
+    renderAll();
+  </script>
+</body>
+</html>

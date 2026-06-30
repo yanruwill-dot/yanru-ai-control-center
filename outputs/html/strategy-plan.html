@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>整体方案 HTML</title>
+  <style>
+    :root { color-scheme: dark; --bg:#111315; --panel:#1b1f22; --ink:#f4efe4; --muted:#a8afa7; --green:#63d471; --cyan:#6ed6ff; --gold:#ffc45b; --line:rgba(255,255,255,.12); --purple:#a77bc7; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; background:radial-gradient(circle at 82% 16%,rgba(167,123,199,.28),transparent 30%),radial-gradient(circle at 16% 12%,rgba(99,212,113,.18),transparent 28%),linear-gradient(135deg,#111315,#1d211f); color:var(--ink); font-family:"Avenir Next","PingFang SC","Noto Sans SC",sans-serif; }
+    .wrap { width:min(1180px,100%); margin:0 auto; padding:34px 18px 60px; }
+    .switcher { display:flex; justify-content:flex-end; gap:10px; align-items:center; margin-bottom:14px; color:var(--muted); font-size:14px; }
+    .switcher select { min-width:210px; border:1px solid var(--line); border-radius:8px; background:#202429; color:var(--ink); padding:10px 12px; }
+    .hero { display:grid; grid-template-columns:minmax(0,1.2fr) minmax(320px,.8fr); gap:16px; align-items:stretch; }
+    .hero-main, .panel, .step, .metric { background:rgba(27,31,34,.86); border:1px solid var(--line); border-radius:8px; box-shadow:0 20px 70px rgba(0,0,0,.28); }
+    .hero-main { padding:32px; }
+    .kicker { color:var(--green); font-weight:900; letter-spacing:.08em; }
+    h1 { margin:12px 0; font-size:48px; line-height:1.08; letter-spacing:0; }
+    .lead { color:#d5d0c3; font-size:18px; line-height:1.8; margin:0; }
+    .panel { padding:22px; }
+    .panel h2 { margin:0 0 12px; font-size:20px; }
+    .signal { display:grid; gap:10px; }
+    .signal div { border:1px solid var(--line); border-radius:8px; padding:12px; color:#d5d0c3; background:rgba(255,255,255,.04); }
+    .section { margin-top:16px; }
+    .section-head { display:flex; justify-content:space-between; align-items:end; gap:16px; margin:28px 0 12px; }
+    .section-head h2 { margin:0; font-size:26px; }
+    .grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+    .step { padding:16px; min-height:146px; }
+    .step small { color:var(--cyan); font-weight:900; }
+    .step strong { display:block; margin:10px 0; font-size:18px; line-height:1.45; }
+    .step p { margin:0; color:var(--muted); line-height:1.65; }
+    .metrics { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+    .metric { padding:18px; }
+    .metric small { color:var(--muted); }
+    .metric strong { display:block; margin-top:8px; color:var(--gold); font-size:24px; }
+    .roadmap { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+    .roadmap div { border-top:3px solid var(--green); background:rgba(255,255,255,.045); border-radius:8px; padding:14px; color:#d5d0c3; line-height:1.6; }
+    .pipeline-shell { min-height:760px; display:grid; place-items:center; border:1px solid rgba(255,255,255,.14); border-radius:8px; background:linear-gradient(180deg,rgba(167,123,199,.38),rgba(48,43,60,.72)),radial-gradient(circle at center,rgba(255,255,255,.13),transparent 52%); box-shadow:inset 0 0 0 1px rgba(255,255,255,.06),0 30px 90px rgba(0,0,0,.32); overflow:hidden; position:relative; }
+    .pipeline-shell::before { content:""; position:absolute; inset:0; background:linear-gradient(90deg,transparent 49.8%,rgba(255,255,255,.18) 50%,transparent 50.2%); opacity:.6; }
+    .pipeline { width:min(420px,86%); display:grid; justify-items:center; gap:8px; position:relative; z-index:1; }
+    .pipe-step { width:100%; min-height:64px; border:1px solid rgba(255,255,255,.18); border-radius:14px; background:linear-gradient(145deg,rgba(75,65,82,.94),rgba(48,43,55,.94)); color:#fff; display:grid; place-items:center; text-align:center; padding:10px 20px; box-shadow:0 18px 34px rgba(0,0,0,.24), inset 0 1px 0 rgba(255,255,255,.14); transform:rotate(var(--tilt,0deg)); }
+    .pipe-step strong { display:block; font-size:20px; letter-spacing:.02em; }
+    .pipe-step small { display:block; margin-top:4px; color:#dfd5e8; font-size:12px; }
+    .pipe-step.final { background:linear-gradient(145deg,#fffaf0,#f2dfc7); color:#2b2522; }
+    .pipe-arrow { width:0; height:0; border-left:18px solid transparent; border-right:18px solid transparent; border-top:28px solid rgba(255,255,255,.76); filter:drop-shadow(0 8px 10px rgba(0,0,0,.2)); }
+    .pipeline-note { position:absolute; right:22px; bottom:22px; width:min(280px,calc(100% - 44px)); color:#f3eafa; line-height:1.7; font-size:13px; background:rgba(27,31,34,.58); border:1px solid rgba(255,255,255,.12); border-radius:8px; padding:14px; z-index:2; }
+    @media (max-width:900px){ .hero,.grid,.metrics,.roadmap{grid-template-columns:1fr;} h1{font-size:36px;} .pipeline-shell{min-height:680px;} .pipeline-note{position:relative; right:auto; bottom:auto; margin:16px; width:auto;} }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <div class="switcher">
+      <span>行业</span>
+      <select id="industryPicker"></select>
+    </div>
+    <section class="hero">
+      <div class="hero-main">
+        <div class="kicker" id="kicker"></div>
+        <h1 id="headline"></h1>
+        <p class="lead" id="lead"></p>
+      </div>
+      <aside class="panel">
+        <h2>近期热点信号</h2>
+        <div class="signal" id="signals"></div>
+      </aside>
+    </section>
+    <section class="section">
+      <div class="section-head"><h2>智能体协作流水线</h2><span style="color:var(--muted);">一条线跑完内容生产</span></div>
+      <div class="pipeline-shell">
+        <div class="pipeline" id="pipeline"></div>
+        <div class="pipeline-note" id="pipelineNote"></div>
+      </div>
+    </section>
+    <section class="section">
+      <div class="section-head"><h2>4 周执行排期</h2><span style="color:var(--muted);">先验证，再放大</span></div>
+      <div class="roadmap">
+        <div><strong>第 1 周</strong><br>完成品牌定位、热点抓取、标题池和首批内容。</div>
+        <div><strong>第 2 周</strong><br>发布公众号长文、小红书图文和私域承接脚本。</div>
+        <div><strong>第 3 周</strong><br>根据咨询、收藏、转发数据优化内容角度。</div>
+        <div><strong>第 4 周</strong><br>沉淀 SOP，复制到下一批选题和客户沟通。</div>
+      </div>
+    </section>
+    <section class="section">
+      <div class="section-head"><h2>验收指标</h2><span style="color:var(--muted);">复盘哥每轮回收</span></div>
+      <div class="metrics" id="metrics"></div>
+    </section>
+  </main>
+  <script src="./content-data.js"></script>
+  <script>
+    const pipelineLabels = ["一、选行业", "二、抓热点", "三、写文章", "四、配图排版", "五、发文脚本", "六、复盘"];
+
+    function currentKey() {
+      return window.location.hash.replace("#", "") || "education";
+    }
+
+    function mountPicker() {
+      const picker = document.getElementById("industryPicker");
+      picker.innerHTML = Object.entries(window.IndustryContent).map(([key, value]) => `<option value="${key}">${value.label}</option>`).join("");
+      picker.value = window.IndustryContent[currentKey()] ? currentKey() : "education";
+      picker.addEventListener("change", () => {
+        window.location.hash = picker.value;
+        renderPlan();
+      });
+    }
+
+    function renderPlan() {
+      const data = window.getIndustryContent();
+      document.title = `${data.label}整体方案`;
+      document.getElementById("industryPicker").value = currentKey();
+      document.getElementById("kicker").textContent = `${data.label} · 自动化内容方案`;
+      document.getElementById("headline").textContent = data.headline;
+      document.getElementById("lead").textContent = data.subhead;
+      document.getElementById("signals").innerHTML = data.hotspots.map(item => `<div>${item}</div>`).join("");
+      document.getElementById("pipeline").innerHTML = pipelineLabels.map((label, index) => `
+        <div class="pipe-step ${index === pipelineLabels.length - 1 ? "final" : ""}" style="--tilt:${index % 2 ? -1.6 : 1.4}deg">
+          <strong>${label}</strong>
+          <small>${data.planSteps[index] || data.offer}</small>
+        </div>
+        ${index < pipelineLabels.length - 1 ? '<div class="pipe-arrow"></div>' : ''}
+      `).join("");
+      document.getElementById("pipelineNote").textContent = `这条线的目标不是多做内容，而是让 ${data.label} 的热点、文章、配图、发布和复盘形成一次可复制的生产闭环。`;
+      document.getElementById("metrics").innerHTML = data.metrics.map(item => `<article class="metric"><small>核心指标</small><strong>${item}</strong></article>`).join("");
+    }
+
+    mountPicker();
+    renderPlan();
+    window.addEventListener("hashchange", renderPlan);
+  </script>
+</body>
+</html>

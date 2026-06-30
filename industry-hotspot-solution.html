@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>行业热点 HTML 内容系统整体方案</title>
+  <style>
+    :root{--ink:#111916;--paper:#f7f2e8;--muted:#647067;--green:#0b735d;--amber:#bc722b;--line:rgba(17,25,22,.13)}*{box-sizing:border-box}body{margin:0;color:var(--ink);background:linear-gradient(135deg,#fffaf0,#e9f0e8 58%,#f5e6d0);font-family:"Songti SC","STSong","Noto Serif CJK SC",Georgia,serif;letter-spacing:0}.page{width:min(1240px,calc(100vw - 40px));margin:0 auto;padding:34px 0 54px}.hero{min-height:460px;border:1px solid var(--line);background:linear-gradient(90deg,rgba(11,115,93,.16),transparent 38%),linear-gradient(135deg,rgba(255,255,255,.9),rgba(255,250,240,.64));box-shadow:0 28px 90px rgba(17,25,22,.14);padding:44px;display:grid;grid-template-columns:1fr 360px;gap:34px;align-items:end;border-radius:6px}.kicker{color:var(--green);font:900 12px/1.2 "PingFang SC","Hiragino Sans GB",sans-serif;letter-spacing:.12em;text-transform:uppercase}h1{margin:18px 0;max-width:760px;font-size:clamp(42px,6vw,80px);line-height:.98;letter-spacing:0}.hero p{max-width:760px;margin:0;color:#33423c;font:18px/1.9 "PingFang SC","Hiragino Sans GB",sans-serif}.score-card{border:1px solid var(--line);background:#111916;color:#fff8e9;border-radius:6px;padding:24px;font-family:"PingFang SC","Hiragino Sans GB",sans-serif}.score-card strong{display:block;font-size:56px;line-height:1;margin:12px 0;color:#f0b46b}.section{margin-top:22px;border:1px solid var(--line);border-radius:6px;background:rgba(255,252,244,.86);box-shadow:0 18px 54px rgba(17,25,22,.1);padding:30px}.section-head{display:flex;align-items:end;justify-content:space-between;gap:20px;border-bottom:1px solid var(--line);padding-bottom:18px;margin-bottom:22px}h2{margin:0;font:900 30px/1.15 "PingFang SC","Hiragino Sans GB",sans-serif;letter-spacing:0}.section-head p{margin:0;color:var(--muted);font:14px/1.8 "PingFang SC","Hiragino Sans GB",sans-serif}.matrix{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.card{min-height:180px;border:1px solid var(--line);border-radius:5px;background:rgba(255,255,255,.52);padding:18px;font-family:"PingFang SC","Hiragino Sans GB",sans-serif}.card small{color:var(--green);font-weight:900}.card h3{margin:10px 0;font-size:20px;line-height:1.25}.card p,li{color:#33423c;font:15px/1.8 "PingFang SC","Hiragino Sans GB",sans-serif}.flow{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}.flow-step{border:1px solid var(--line);border-radius:5px;padding:18px;background:linear-gradient(180deg,rgba(11,115,93,.08),rgba(255,255,255,.55));font-family:"PingFang SC","Hiragino Sans GB",sans-serif}.flow-step b{display:block;margin-top:8px;font-size:18px}.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px}.table{width:100%;border-collapse:collapse;font-family:"PingFang SC","Hiragino Sans GB",sans-serif}.table th,.table td{border-bottom:1px solid var(--line);text-align:left;padding:14px;vertical-align:top;font-size:14px;line-height:1.7}.table th{background:rgba(11,115,93,.08);color:var(--green);font-weight:900}.cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:24px}.btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;border:1px solid var(--ink);border-radius:4px;padding:0 18px;background:var(--ink);color:#fff8e9;text-decoration:none;font:800 14px/1 "PingFang SC","Hiragino Sans GB",sans-serif}.btn.secondary{background:transparent;color:var(--ink)}@media(max-width:920px){.page{width:min(100vw - 24px,760px)}.hero,.two-col{grid-template-columns:1fr}.matrix,.flow{grid-template-columns:1fr}.hero,.section{padding:24px}.section-head{display:block}}
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <div>
+        <div class="kicker">Overall Solution / Hotspot To Content OS</div>
+        <h1>行业热点自动化内容系统整体方案</h1>
+        <p>目标不是做一个新闻抓取器，而是做一个能持续生产内容资产的系统：选行业、抓热点、筛选机会、生成高级 HTML、派给智能体团队，并把每次结果沉淀回案例库。</p>
+        <div class="cta"><a class="btn" href="industry-hotspot-html-factory.html">打开工具页</a><a class="btn secondary" href="index.html">回到智能体看板</a></div>
+      </div>
+      <aside class="score-card"><span>方案定位</span><strong>4 层</strong><p>数据源、判断层、内容层、发布复盘层，缺任何一层都会退化成一次性素材整理。</p></aside>
+    </section>
+    <section class="section">
+      <div class="section-head"><h2>一、系统架构</h2><p>从热点到成品，不靠人工临时找资料。</p></div>
+      <div class="flow">
+        <div class="flow-step"><small>01</small><b>行业选择</b><p>预设行业词库，也允许追加关键词。</p></div>
+        <div class="flow-step"><small>02</small><b>热点抓取</b><p>公开新闻 API 优先，失败显示边界和离线样例。</p></div>
+        <div class="flow-step"><small>03</small><b>机会筛选</b><p>按热度、业务相关性、可转化程度排序。</p></div>
+        <div class="flow-step"><small>04</small><b>HTML 生成</b><p>直接产出可复制、可下载、可预览页面。</p></div>
+        <div class="flow-step"><small>05</small><b>复盘沉淀</b><p>把标题、来源、点击、转化写回知识库。</p></div>
+      </div>
+    </section>
+    <section class="section">
+      <div class="section-head"><h2>二、角色分工</h2><p>接入现有智能体作战看板。</p></div>
+      <div class="matrix">
+        <article class="card"><small>选题哥</small><h3>抓热点和判方向</h3><p>按行业词抓近期公开报道，剔除噪音，给出内容机会。</p></article>
+        <article class="card"><small>写手哥</small><h3>把热点写成判断</h3><p>不写新闻摘要，写老板能用的结论、话术和行动建议。</p></article>
+        <article class="card"><small>图片姐</small><h3>生成信息卡结构</h3><p>把关键判断做成封面、图表、流程图和短图文页。</p></article>
+        <article class="card"><small>复盘哥</small><h3>记录反馈</h3><p>回看标题、阅读、收藏、咨询和转化，给下一轮喂数据。</p></article>
+      </div>
+    </section>
+    <section class="section">
+      <div class="section-head"><h2>三、功能清单</h2><p>第一版先跑通闭环，后续再接真实发布和私域数据。</p></div>
+      <table class="table">
+        <thead><tr><th>模块</th><th>第一版能力</th><th>后续增强</th></tr></thead>
+        <tbody>
+          <tr><td>行业词库</td><td>AI 教育、跨境 B2B、本地生活、美业、制造、新能源、金融内容、私董会。</td><td>接客户行业库、产品库、竞品库。</td></tr>
+          <tr><td>热点抓取</td><td>用 GDELT DOC API 尝试抓近期公开新闻，失败时有离线样例兜底。</td><td>接 News API、微信/小红书/抖音监控、企业自有素材池。</td></tr>
+          <tr><td>内容生成</td><td>生成高级排版 HTML，包含判断、角度、来源索引和行动建议。</td><td>生成公众号、短视频脚本、海报、销售话术、课程大纲。</td></tr>
+          <tr><td>验证边界</td><td>明确实时源是否成功、来源是否可点击、是否只是公开报道。</td><td>加入事实核验、敏感词、平台合规、引用审计。</td></tr>
+        </tbody>
+      </table>
+    </section>
+    <section class="section">
+      <div class="section-head"><h2>四、商业判断</h2><p>这个系统真正卖的是持续内容生产能力。</p></div>
+      <div class="two-col">
+        <article class="card"><small>巴菲特 + 芒格视角</small><h3>护城河不在抓新闻，而在复利资产</h3><p>公开热点人人都能看到，差异在于谁能稳定转成选题、案例、话术、转化和复盘。长期看，内容系统越用越懂行业，才有复利。</p></article>
+        <article class="card"><small>全局 + 终局视角</small><h3>最终形态是行业内容操作系统</h3><p>它不只服务公众号，而是服务获客、销售、课程、私董会和企业咨询。热点进入系统，最后变成客户能感知的专业判断。</p></article>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

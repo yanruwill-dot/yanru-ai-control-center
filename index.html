@@ -1,0 +1,2034 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>智能体作战看板</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #111315;
+      --panel: #191c1f;
+      --panel-2: #202429;
+      --panel-3: #262b31;
+      --line: rgba(255, 255, 255, .1);
+      --line-strong: rgba(255, 255, 255, .18);
+      --text: #f1eee8;
+      --muted: #9ca39d;
+      --soft: #cac5b7;
+      --green: #63d471;
+      --lime: #b7e46b;
+      --amber: #ffc45b;
+      --red: #ff756f;
+      --cyan: #6ed6ff;
+      --blue: #6a8cff;
+      --wood: #b47a42;
+      --floor: #ece7db;
+      --wall: #d6d0c1;
+      --shadow: 0 18px 60px rgba(0, 0, 0, .32);
+      font-family: "Avenir Next", "PingFang SC", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 18% 18%, rgba(110, 214, 255, .13), transparent 32%),
+        linear-gradient(135deg, #101215 0%, #171a1f 48%, #0f1413 100%);
+      color: var(--text);
+      overflow-x: hidden;
+    }
+
+    button, input, textarea, select {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+      cursor: pointer;
+    }
+
+    .app {
+      display: grid;
+      grid-template-columns: 76px minmax(0, 1fr) 340px;
+      min-height: 100vh;
+    }
+
+    .rail {
+      border-right: 1px solid var(--line);
+      background: rgba(9, 11, 12, .76);
+      padding: 18px 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+    }
+
+    .mark {
+      width: 44px;
+      height: 44px;
+      border-radius: 8px;
+      background: linear-gradient(145deg, #f2efe7, #8fbf8e);
+      color: #151816;
+      display: grid;
+      place-items: center;
+      font-weight: 900;
+      letter-spacing: -1px;
+    }
+
+    .rail button {
+      width: 46px;
+      height: 46px;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--muted);
+      display: grid;
+      place-items: center;
+      transition: .2s ease;
+      position: relative;
+    }
+
+    .rail button.active,
+    .rail button:hover {
+      color: var(--text);
+      background: rgba(255, 255, 255, .08);
+    }
+
+    .rail button.active::before {
+      content: "";
+      position: absolute;
+      left: -12px;
+      width: 3px;
+      height: 26px;
+      border-radius: 2px;
+      background: var(--green);
+    }
+
+    .icon {
+      width: 22px;
+      height: 22px;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    main {
+      min-width: 0;
+      padding: 20px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+
+    .owner-hero {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      min-width: 0;
+    }
+
+    .owner-avatar {
+      width: 92px;
+      height: 92px;
+      flex: 0 0 92px;
+      border-radius: 18px;
+      padding: 3px;
+      background: linear-gradient(145deg, rgba(246, 231, 200, .98), rgba(99, 212, 113, .9));
+      box-shadow: 0 22px 44px rgba(0, 0, 0, .28), inset 0 0 0 1px rgba(255, 255, 255, .24);
+    }
+
+    .owner-avatar img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+      object-position: 54% 34%;
+      border-radius: 15px;
+      border: 1px solid rgba(0, 0, 0, .22);
+    }
+
+    .owner-kicker {
+      display: inline-flex;
+      align-items: center;
+      min-height: 26px;
+      margin-bottom: 8px;
+      padding: 4px 9px;
+      border-radius: 999px;
+      color: #dcefc0;
+      background: rgba(99, 212, 113, .12);
+      border: 1px solid rgba(99, 212, 113, .28);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(24px, 3vw, 38px);
+      line-height: 1.06;
+      letter-spacing: 0;
+    }
+
+    .sub {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .run-state {
+      min-width: 230px;
+      background: rgba(255, 255, 255, .06);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .run-row {
+      display: flex;
+      justify-content: space-between;
+      color: var(--soft);
+      font-size: 13px;
+    }
+
+    .progress {
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, .1);
+      overflow: hidden;
+    }
+
+    .progress span {
+      display: block;
+      height: 100%;
+      width: 72%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--green), var(--cyan));
+      animation: breathe 2.6s ease-in-out infinite;
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .metric {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+      min-height: 92px;
+      box-shadow: 0 10px 32px rgba(0, 0, 0, .12);
+    }
+
+    .metric small {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .metric strong {
+      display: block;
+      margin-top: 8px;
+      font-size: 28px;
+      line-height: 1;
+    }
+
+    .metric em {
+      display: block;
+      margin-top: 9px;
+      color: var(--green);
+      font-style: normal;
+      font-size: 12px;
+    }
+
+    .system-status {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .status-card {
+      background: linear-gradient(145deg, rgba(255, 255, 255, .07), rgba(255, 255, 255, .035));
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+      min-height: 128px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .status-card::after {
+      content: "";
+      position: absolute;
+      width: 92px;
+      height: 92px;
+      right: -36px;
+      bottom: -42px;
+      border-radius: 50%;
+      background: color-mix(in srgb, var(--status-color, var(--green)) 22%, transparent);
+    }
+
+    .status-card-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .status-title {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      font-size: 14px;
+      font-weight: 850;
+    }
+
+    .status-badge {
+      color: var(--status-color, var(--green));
+      background: color-mix(in srgb, var(--status-color, var(--green)) 14%, transparent);
+      border: 1px solid color-mix(in srgb, var(--status-color, var(--green)) 36%, transparent);
+      border-radius: 999px;
+      padding: 4px 9px;
+      font-size: 11px;
+      white-space: nowrap;
+    }
+
+    .status-lines {
+      display: grid;
+      gap: 7px;
+      color: var(--soft);
+      font-size: 12px;
+      line-height: 1.45;
+      position: relative;
+      z-index: 1;
+    }
+
+    .status-lines b {
+      color: var(--text);
+      font-weight: 800;
+    }
+
+    .tool-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .tool-links a {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 32px;
+      border: 1px solid rgba(255, 255, 255, .18);
+      border-radius: 5px;
+      padding: 0 10px;
+      color: #ecfff9;
+      background: rgba(255, 255, 255, .08);
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .buddy {
+      --buddy-color: var(--green);
+      width: 22px;
+      height: 28px;
+      flex: 0 0 22px;
+      position: relative;
+      display: inline-block;
+      filter: drop-shadow(0 5px 8px rgba(0, 0, 0, .22));
+    }
+
+    .buddy::before {
+      content: "";
+      position: absolute;
+      left: 7px;
+      top: 0;
+      width: 8px;
+      height: 14px;
+      background: linear-gradient(145deg, color-mix(in srgb, var(--buddy-color) 74%, #fff 26%), var(--buddy-color));
+      clip-path: polygon(50% 0, 100% 36%, 72% 100%, 28% 100%, 0 36%);
+      animation: plumbobFloat 1.8s ease-in-out infinite;
+      box-shadow: 0 0 12px color-mix(in srgb, var(--buddy-color) 62%, transparent);
+    }
+
+    .buddy::after {
+      content: "";
+      position: absolute;
+      left: 5px;
+      top: 16px;
+      width: 12px;
+      height: 12px;
+      border-radius: 7px 7px 4px 4px;
+      background:
+        radial-gradient(circle at 50% -3px, #f2c79d 0 4px, transparent 4.5px),
+        linear-gradient(145deg, color-mix(in srgb, var(--buddy-color) 86%, #fff 14%), var(--buddy-color));
+      box-shadow:
+        -5px 4px 0 -3px var(--buddy-color),
+        5px 4px 0 -3px var(--buddy-color);
+    }
+
+    .buddy.working {
+      --buddy-color: var(--cyan);
+      animation: bob 1.5s ease-in-out infinite;
+    }
+
+    .buddy.ready {
+      --buddy-color: var(--green);
+    }
+
+    .buddy.review {
+      --buddy-color: var(--amber);
+    }
+
+    .buddy.blocked {
+      --buddy-color: var(--red);
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1.28fr) minmax(320px, .72fr);
+      gap: 14px;
+      align-items: stretch;
+    }
+
+    .office-card,
+    .command-card,
+    .board,
+    aside {
+      background: rgba(25, 28, 31, .88);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      gap: 10px;
+    }
+
+    .section-head h2 {
+      margin: 0;
+      font-size: 16px;
+      letter-spacing: 0;
+    }
+
+    .section-head span {
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .office {
+      position: relative;
+      min-height: 520px;
+      overflow: hidden;
+      background:
+        linear-gradient(120deg, rgba(255, 255, 255, .16), rgba(255, 255, 255, 0) 42%),
+        var(--floor);
+      isolation: isolate;
+    }
+
+    .office::before,
+    .office::after {
+      content: "";
+      position: absolute;
+      background: var(--wall);
+      z-index: 0;
+      box-shadow: inset 0 -1px 0 rgba(0, 0, 0, .05);
+    }
+
+    .office::before {
+      width: 34%;
+      height: 100%;
+      right: -19%;
+      top: 0;
+      transform: skewX(-18deg);
+    }
+
+    .office::after {
+      width: 44%;
+      height: 92px;
+      left: 30%;
+      top: 34px;
+      transform: skewX(-18deg);
+      opacity: .92;
+    }
+
+    .city {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 120px;
+      background:
+        linear-gradient(#bcc5c8, #e0ddd2);
+      z-index: 0;
+      opacity: .8;
+      clip-path: polygon(0 0, 100% 0, 100% 50%, 70% 38%, 52% 60%, 22% 46%, 0 66%);
+    }
+
+    .city span {
+      position: absolute;
+      bottom: 38px;
+      width: 38px;
+      height: 64px;
+      background: #868d91;
+      box-shadow:
+        8px 8px 0 #c26d38,
+        80px -22px 0 #777e83,
+        128px 4px 0 #a35d37,
+        210px -12px 0 #727a7d,
+        318px 10px 0 #8d9497,
+        412px -18px 0 #bf6434,
+        560px 8px 0 #777e83;
+      opacity: .82;
+    }
+
+    .floor-grid {
+      position: absolute;
+      inset: 114px 0 0;
+      background-image:
+        linear-gradient(rgba(0, 0, 0, .045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 0, 0, .045) 1px, transparent 1px);
+      background-size: 30px 30px;
+      transform: skewY(-8deg) scaleY(.88);
+      transform-origin: top left;
+      z-index: 0;
+    }
+
+    .agent {
+      position: absolute;
+      z-index: 3;
+      width: 112px;
+      height: 116px;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      transform: translate(-50%, -50%);
+      transition: transform .2s ease, filter .2s ease;
+      animation: agentWork 3.8s ease-in-out infinite;
+      animation-delay: var(--agent-delay, 0s);
+    }
+
+    .agent:hover,
+    .agent.selected {
+      transform: translate(-50%, -50%) scale(1.07);
+      filter: drop-shadow(0 16px 18px rgba(0, 0, 0, .22));
+    }
+
+    .desk {
+      position: absolute;
+      left: 20px;
+      top: 91px;
+      width: 72px;
+      height: 18px;
+      border-radius: 50%;
+      background:
+        radial-gradient(ellipse at center, rgba(180, 122, 66, .52), rgba(180, 122, 66, 0) 70%);
+      transform: skewX(-10deg);
+      box-shadow: none;
+      z-index: 1;
+    }
+
+    .plumbob {
+      position: absolute;
+      left: 51px;
+      top: 2px;
+      width: 12px;
+      height: 22px;
+      background: linear-gradient(145deg, color-mix(in srgb, var(--agent-color, var(--green)) 72%, #fff 28%), var(--agent-color, var(--green)));
+      clip-path: polygon(50% 0, 100% 35%, 72% 100%, 28% 100%, 0 35%);
+      filter: drop-shadow(0 0 8px color-mix(in srgb, var(--agent-color, var(--green)) 72%, transparent));
+      animation: plumbobFloat 1.65s ease-in-out infinite;
+      animation-delay: var(--agent-delay, 0s);
+      z-index: 5;
+    }
+
+    .plumbob::after {
+      content: "";
+      position: absolute;
+      inset: 2px 4px 8px 2px;
+      background: rgba(255, 255, 255, .45);
+      clip-path: polygon(50% 0, 100% 38%, 60% 100%, 18% 38%);
+    }
+
+    .doll-wrap {
+      position: absolute;
+      left: 8px;
+      top: 18px;
+      width: 96px;
+      height: 94px;
+      z-index: 4;
+      display: grid;
+      place-items: end center;
+      overflow: visible;
+      transform-origin: 50% 92%;
+      animation: dollWork 2.2s ease-in-out infinite;
+      animation-delay: var(--agent-delay, 0s);
+      filter: drop-shadow(0 12px 13px rgba(0, 0, 0, .28));
+    }
+
+    .doll-img {
+      height: 104px;
+      width: auto;
+      display: block;
+      border-radius: 10px;
+      object-fit: contain;
+      object-position: center bottom;
+      mix-blend-mode: normal;
+    }
+
+    .person {
+      position: absolute;
+      left: 38px;
+      top: 30px;
+      width: 30px;
+      height: 43px;
+      z-index: 4;
+      transform-origin: 50% 100%;
+      animation: personFocus 1.8s ease-in-out infinite;
+      animation-delay: var(--agent-delay, 0s);
+    }
+
+    .person .head,
+    .person .body,
+    .person .arm,
+    .person .leg {
+      position: absolute;
+    }
+
+    .person .head {
+      left: 9px;
+      position: absolute;
+      top: 1px;
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 35% 42%, #2b211b 0 1px, transparent 1.5px),
+        radial-gradient(circle at 66% 42%, #2b211b 0 1px, transparent 1.5px),
+        linear-gradient(145deg, #f2c79d, #b8754e);
+      box-shadow: inset 0 -2px 0 rgba(0, 0, 0, .1);
+    }
+
+    .person .hair {
+      position: absolute;
+      left: 8px;
+      top: 0;
+      width: 15px;
+      height: 7px;
+      border-radius: 9px 9px 3px 3px;
+      background: #5b3b27;
+      z-index: 1;
+    }
+
+    .person .body {
+      left: 6px;
+      top: 14px;
+      width: 19px;
+      height: 23px;
+      border-radius: 10px 10px 5px 5px;
+      background:
+        linear-gradient(90deg, rgba(255, 255, 255, .22), transparent 42%),
+        linear-gradient(145deg, color-mix(in srgb, var(--agent-color, var(--blue)) 82%, #fff 18%), var(--agent-color, var(--blue)));
+    }
+
+    .person .arm {
+      top: 17px;
+      width: 7px;
+      height: 18px;
+      border-radius: 8px;
+      background: color-mix(in srgb, var(--agent-color, var(--blue)) 78%, #1b1e22 22%);
+      transform-origin: 50% 2px;
+    }
+
+    .person .arm.left {
+      left: 2px;
+      animation: typeLeft .72s ease-in-out infinite;
+      animation-delay: var(--agent-delay, 0s);
+    }
+
+    .person .arm.right {
+      right: 2px;
+      animation: typeRight .78s ease-in-out infinite;
+      animation-delay: calc(var(--agent-delay, 0s) - .18s);
+    }
+
+    .person .leg {
+      top: 34px;
+      width: 8px;
+      height: 10px;
+      border-radius: 6px;
+      background: #32383d;
+      z-index: -1;
+    }
+
+    .person .leg.left {
+      left: 7px;
+    }
+
+    .person .leg.right {
+      right: 7px;
+    }
+
+    .nameplate {
+      position: absolute;
+      left: -16px;
+      top: -10px;
+      min-width: 112px;
+      height: 24px;
+      border-radius: 4px;
+      background: rgba(17, 19, 21, .92);
+      border-left: 3px solid var(--agent-color, var(--green));
+      color: #fff;
+      padding: 4px 24px 4px 8px;
+      font-size: 11px;
+      line-height: 16px;
+      white-space: nowrap;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, .24);
+    }
+
+    .nameplate::after {
+      content: "";
+      position: absolute;
+      right: 8px;
+      top: 5px;
+      width: 8px;
+      height: 14px;
+      background: linear-gradient(145deg, color-mix(in srgb, var(--agent-color, var(--green)) 72%, #fff 28%), var(--agent-color, var(--green)));
+      clip-path: polygon(50% 0, 100% 35%, 72% 100%, 28% 100%, 0 35%);
+      filter: drop-shadow(0 0 5px color-mix(in srgb, var(--agent-color, var(--green)) 58%, transparent));
+    }
+
+    .lane-tag {
+      position: absolute;
+      z-index: 2;
+      padding: 5px 8px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, .7);
+      color: #3a3a36;
+      font-size: 12px;
+      font-weight: 700;
+      border: 1px solid rgba(0, 0, 0, .08);
+    }
+
+    .pulse-line {
+      position: absolute;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(99, 212, 113, .8), transparent);
+      transform-origin: left center;
+      opacity: .75;
+      animation: sweep 2.8s linear infinite;
+      z-index: 1;
+    }
+
+    .command-card {
+      padding-bottom: 14px;
+    }
+
+    .command-form {
+      display: grid;
+      gap: 10px;
+      padding: 14px;
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    input,
+    textarea,
+    select {
+      width: 100%;
+      color: var(--text);
+      background: rgba(255, 255, 255, .06);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px 11px;
+      outline: none;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 84px;
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus {
+      border-color: rgba(110, 214, 255, .7);
+      box-shadow: 0 0 0 3px rgba(110, 214, 255, .12);
+    }
+
+    .primary {
+      height: 42px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #dcefc0, #63d471);
+      color: #132015;
+      font-weight: 800;
+      box-shadow: 0 12px 28px rgba(99, 212, 113, .18);
+    }
+
+    .industry-lab {
+      margin: 0 14px 14px;
+      padding: 14px;
+      border: 1px solid rgba(255, 255, 255, .12);
+      border-radius: 8px;
+      background:
+        linear-gradient(135deg, rgba(110, 214, 255, .11), transparent 42%),
+        rgba(255, 255, 255, .045);
+    }
+
+    .industry-lab-head {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(180px, 240px);
+      gap: 12px;
+      align-items: end;
+      margin-bottom: 12px;
+    }
+
+    .industry-lab h3 {
+      margin: 0 0 6px;
+      font-size: 15px;
+    }
+
+    .industry-lab p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    .hotspot-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 9px;
+      margin-bottom: 12px;
+    }
+
+    .hotspot-card {
+      min-height: 104px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      background: rgba(12, 15, 16, .44);
+    }
+
+    .hotspot-card small {
+      display: inline-flex;
+      margin-bottom: 7px;
+      color: var(--cyan);
+      font-size: 11px;
+    }
+
+    .hotspot-card strong {
+      display: block;
+      font-size: 13px;
+      line-height: 1.45;
+      margin-bottom: 6px;
+    }
+
+    .hotspot-card span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .output-dock {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 9px;
+    }
+
+    .output-dock a {
+      min-height: 64px;
+      border-radius: 8px;
+      border: 1px solid rgba(99, 212, 113, .24);
+      background: rgba(99, 212, 113, .09);
+      color: var(--text);
+      text-decoration: none;
+      padding: 10px;
+      display: grid;
+      align-content: center;
+      gap: 4px;
+    }
+
+    .output-dock strong {
+      font-size: 13px;
+    }
+
+    .output-dock span {
+      color: var(--soft);
+      font-size: 11px;
+    }
+
+    .mini-feed {
+      display: grid;
+      gap: 8px;
+      padding: 0 14px;
+    }
+
+    .feed-item {
+      display: flex;
+      gap: 8px;
+      padding: 10px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, .045);
+      color: var(--soft);
+      font-size: 12px;
+    }
+
+    .dot {
+      --buddy-color: var(--green);
+      flex: 0 0 16px;
+      width: 16px;
+      height: 20px;
+      margin-top: 1px;
+      border-radius: 0;
+      background: linear-gradient(145deg, color-mix(in srgb, var(--buddy-color) 72%, #fff 28%), var(--buddy-color));
+      clip-path: polygon(50% 0, 100% 35%, 72% 100%, 28% 100%, 0 35%);
+      filter: drop-shadow(0 0 7px color-mix(in srgb, var(--buddy-color) 60%, transparent));
+      animation: plumbobFloat 1.7s ease-in-out infinite;
+    }
+
+    .board {
+      margin-top: 14px;
+      overflow: hidden;
+    }
+
+    .columns {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(220px, 1fr));
+      gap: 10px;
+      padding: 12px;
+      overflow-x: auto;
+    }
+
+    .column {
+      background: rgba(255, 255, 255, .04);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      min-height: 298px;
+      padding: 10px;
+    }
+
+    .column-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      color: var(--soft);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .count {
+      color: var(--muted);
+      background: rgba(255, 255, 255, .08);
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .task {
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 11px;
+      margin-bottom: 10px;
+      cursor: grab;
+      transition: .18s ease;
+    }
+
+    .task:hover,
+    .task.active {
+      border-color: rgba(99, 212, 113, .45);
+      background: var(--panel-3);
+    }
+
+    .task strong {
+      display: block;
+      font-size: 13px;
+      line-height: 1.35;
+      margin-bottom: 8px;
+    }
+
+    .task p {
+      margin: 0 0 10px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .task-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      min-height: 22px;
+      border-radius: 999px;
+      padding: 3px 8px;
+      background: rgba(255, 255, 255, .07);
+      color: var(--soft);
+      font-size: 11px;
+    }
+
+    .move {
+      margin-left: auto;
+      border-radius: 6px;
+      padding: 4px 8px;
+      background: rgba(99, 212, 113, .16);
+      color: var(--green);
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    aside {
+      border-radius: 0;
+      border-top: 0;
+      border-right: 0;
+      border-bottom: 0;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: auto;
+      padding: 18px;
+      background: rgba(18, 21, 23, .96);
+    }
+
+    .inspector-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      color: var(--green);
+      font-size: 12px;
+      background: rgba(99, 212, 113, .12);
+      border: 1px solid rgba(99, 212, 113, .28);
+      border-radius: 999px;
+      padding: 5px 10px;
+    }
+
+    .avatar {
+      width: 72px;
+      height: 72px;
+      border-radius: 12px;
+      background: linear-gradient(145deg, var(--agent-color, var(--green)), #30363b);
+      display: grid;
+      place-items: center;
+      margin-bottom: 12px;
+      color: #0d1111;
+      font-size: 34px;
+      font-weight: 900;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .2), 0 18px 38px rgba(0, 0, 0, .26);
+    }
+
+    .agent-title {
+      margin: 0;
+      font-size: 24px;
+      line-height: 1.2;
+    }
+
+    .agent-role {
+      margin: 8px 0 18px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .detail {
+      background: rgba(255, 255, 255, .055);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 11px;
+    }
+
+    .detail small {
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .detail strong {
+      display: block;
+      margin-top: 6px;
+      font-size: 18px;
+    }
+
+    .panel-block {
+      border-top: 1px solid var(--line);
+      padding-top: 16px;
+      margin-top: 16px;
+    }
+
+    .panel-block h3 {
+      margin: 0 0 10px;
+      font-size: 14px;
+    }
+
+    .artifact {
+      display: grid;
+      gap: 8px;
+    }
+
+    .artifact a {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 10px;
+      color: var(--text);
+      text-decoration: none;
+      background: rgba(255, 255, 255, .05);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      font-size: 12px;
+    }
+
+    .artifact span {
+      color: var(--muted);
+    }
+
+    .timeline {
+      display: grid;
+      gap: 10px;
+    }
+
+    .timeline-item {
+      position: relative;
+      padding-left: 18px;
+      color: var(--soft);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .timeline-item::before {
+      content: "";
+      position: absolute;
+      top: 5px;
+      left: 0;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+    }
+
+    .publish-console {
+      display: none;
+      gap: 10px;
+    }
+
+    .publish-console.show {
+      display: grid;
+    }
+
+    .publish-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .publish-button {
+      min-height: 40px;
+      border-radius: 8px;
+      padding: 9px 10px;
+      color: #111513;
+      background: linear-gradient(135deg, #f6e7c8, #ffc45b);
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .publish-button.secondary {
+      background: linear-gradient(135deg, #d9f4ff, #6ed6ff);
+    }
+
+    .publish-button.ghost {
+      color: var(--text);
+      background: rgba(255, 255, 255, .08);
+      border: 1px solid var(--line);
+    }
+
+    .publish-status {
+      min-height: 92px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, .045);
+      color: var(--soft);
+      font-size: 12px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 24px;
+      transform: translateX(-50%) translateY(120%);
+      opacity: 0;
+      pointer-events: none;
+      background: #f1eee8;
+      color: #121513;
+      border-radius: 8px;
+      padding: 11px 14px;
+      box-shadow: var(--shadow);
+      font-size: 13px;
+      font-weight: 800;
+      transition: .25s ease;
+      z-index: 20;
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    @keyframes breathe {
+      0%, 100% { filter: brightness(1); }
+      50% { filter: brightness(1.24); }
+    }
+
+    @keyframes sweep {
+      from { clip-path: inset(0 100% 0 0); }
+      to { clip-path: inset(0 0 0 0); }
+    }
+
+    @keyframes bob {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-2px); }
+    }
+
+    @keyframes agentWork {
+      0%, 100% { filter: saturate(1); }
+      50% { filter: saturate(1.08) brightness(1.04); }
+    }
+
+    @keyframes plumbobFloat {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-4px) rotate(3deg); }
+    }
+
+    @keyframes personFocus {
+      0%, 100% { transform: translateY(0) rotate(-1deg); }
+      50% { transform: translateY(-1px) rotate(1deg); }
+    }
+
+    @keyframes dollWork {
+      0%, 100% { transform: translateY(0) rotate(-1deg) scale(1); }
+      35% { transform: translateY(-3px) rotate(1.2deg) scale(1.02); }
+      70% { transform: translateY(1px) rotate(-.4deg) scale(.995); }
+    }
+
+    @keyframes typeLeft {
+      0%, 100% { transform: rotate(28deg) translateY(0); }
+      50% { transform: rotate(42deg) translateY(2px); }
+    }
+
+    @keyframes typeRight {
+      0%, 100% { transform: rotate(-28deg) translateY(1px); }
+      50% { transform: rotate(-42deg) translateY(2px); }
+    }
+
+    @media (max-width: 1180px) {
+      .app {
+        grid-template-columns: 64px minmax(0, 1fr);
+      }
+
+      aside {
+        position: static;
+        height: auto;
+        grid-column: 2;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        margin: 0 20px 20px 0;
+      }
+
+      .workspace {
+        grid-template-columns: 1fr;
+      }
+
+      .hotspot-grid,
+      .output-dock {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .app {
+        display: block;
+      }
+
+      .rail {
+        position: static;
+        width: 100%;
+        height: auto;
+        flex-direction: row;
+        justify-content: space-between;
+      }
+
+      main {
+        padding: 14px;
+      }
+
+      .topbar,
+      .section-head {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .owner-hero {
+        align-items: flex-start;
+      }
+
+      .owner-avatar {
+        width: 74px;
+        height: 74px;
+        flex-basis: 74px;
+        border-radius: 14px;
+      }
+
+      .owner-avatar img {
+        border-radius: 11px;
+      }
+
+      .run-state {
+        width: 100%;
+      }
+
+      .metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .system-status {
+        grid-template-columns: 1fr;
+      }
+
+      .office {
+        min-height: 470px;
+      }
+
+      .agent {
+        transform: translate(-50%, -50%) scale(.84);
+      }
+
+      .agent:hover,
+      .agent.selected {
+        transform: translate(-50%, -50%) scale(.9);
+      }
+
+      .nameplate {
+        min-width: 96px;
+        font-size: 9px;
+        padding-right: 18px;
+      }
+
+      .columns {
+        grid-template-columns: repeat(4, 245px);
+      }
+
+      .industry-lab-head {
+        grid-template-columns: 1fr;
+      }
+
+      aside {
+        margin: 0 14px 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <nav class="rail" aria-label="主导航">
+      <div class="mark">AI</div>
+      <button class="active" aria-label="作战室">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M9 20v-6h6v6"/></svg>
+      </button>
+      <button aria-label="任务">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M9 6h11"/><path d="M9 12h11"/><path d="M9 18h11"/><path d="M4 6h1"/><path d="M4 12h1"/><path d="M4 18h1"/></svg>
+      </button>
+      <button aria-label="数据">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M4 19V5"/><path d="M4 19h16"/><path d="M8 16V9"/><path d="M13 16V6"/><path d="M18 16v-4"/></svg>
+      </button>
+      <button aria-label="知识库">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M8 8h7"/><path d="M8 12h6"/></svg>
+      </button>
+      <button aria-label="设置">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"/><path d="M4 12h2"/><path d="M18 12h2"/><path d="M12 4v2"/><path d="M12 18v2"/></svg>
+      </button>
+    </nav>
+
+    <main>
+      <header class="topbar">
+        <div class="owner-hero">
+          <div class="owner-avatar">
+            <img src="assets/profile/yanru-control-avatar.png" alt="颜汝头像">
+          </div>
+          <div>
+            <span class="owner-kicker">颜汝的中控台</span>
+            <h1>颜汝 AI 自动化中控台</h1>
+            <p class="sub">这是你的智能体总控室：行业热点、公众号、小红书、配图、发布和复盘，从这里统一调度。</p>
+          </div>
+        </div>
+        <div class="run-state">
+          <div class="run-row"><span>今日自动化运行</span><strong id="runPercent">72%</strong></div>
+          <div class="progress"><span id="progressBar"></span></div>
+          <div class="run-row"><span>下一次复盘</span><span>17:30</span></div>
+        </div>
+      </header>
+
+      <section class="metrics" aria-label="核心指标">
+        <article class="metric"><small>在线智能体</small><strong id="metricOnline">6</strong><em>5 个协作智能体 + 复盘哥</em></article>
+        <article class="metric"><small>今日已完成</small><strong id="metricDone">86</strong><em>比昨日 +18%</em></article>
+        <article class="metric"><small>平均交付时长</small><strong>11m</strong><em>低于警戒线 34m</em></article>
+        <article class="metric"><small>人工接管率</small><strong id="metricEscalate">6%</strong><em>高风险任务自动升舱</em></article>
+      </section>
+
+      <section class="system-status" aria-label="我的系统状态">
+        <article class="status-card" style="--status-color: var(--green);">
+          <div class="status-card-head">
+            <div class="status-title"><span class="buddy ready"></span><span>Hermes 网关</span></div>
+            <span class="status-badge">运行中</span>
+          </div>
+          <div class="status-lines">
+            <span>进程：<b>pid 740</b>，gateway_state：<b>running</b></span>
+            <span>平台：飞书 <b>connected</b>，微信 <b>connected</b></span>
+            <span>配置：蚁小二、微信、OpenAI/Image2 关键项均已读取，不显示密钥</span>
+          </div>
+        </article>
+        <article class="status-card" style="--status-color: var(--cyan);">
+          <div class="status-card-head">
+            <div class="status-title"><span class="buddy working"></span><span>Codex 工作台</span></div>
+            <span class="status-badge">在线</span>
+          </div>
+          <div class="status-lines">
+            <span>CLI：<b>codex-cli 0.139.0</b></span>
+            <span>规则：notify=[]，浏览器后端 <b>iab</b>，不接管主 Mac</span>
+            <span>服务：Codex app、app-server、CodeGraph/LSP 进程已检测到</span>
+          </div>
+        </article>
+        <article class="status-card" style="--status-color: var(--amber);">
+          <div class="status-card-head">
+            <div class="status-title"><span class="buddy review"></span><span>我的当前状态</span></div>
+            <span class="status-badge">正在验收</span>
+          </div>
+          <div class="status-lines">
+            <span>当前页面：<b>agent-kanban-system/index.html</b></span>
+            <span>打开方式：Codex 内置浏览器 file 页面</span>
+            <span>最近动作：读取本机状态，更新智能体看板视觉与状态区</span>
+            <span class="tool-links">
+              <a href="industry-hotspot-html-factory.html" target="_blank">行业热点 HTML 工厂</a>
+              <a href="industry-hotspot-solution.html" target="_blank">整体方案 HTML</a>
+            </span>
+          </div>
+        </article>
+      </section>
+
+      <section class="workspace">
+        <div class="office-card">
+          <div class="section-head">
+            <h2>数字办公室</h2>
+            <span>点击任意智能体查看当前产出</span>
+          </div>
+          <div class="office" id="office">
+            <div class="city"><span></span></div>
+            <div class="floor-grid"></div>
+            <div class="lane-tag" style="left: 28px; top: 138px;">获客大厅</div>
+            <div class="lane-tag" style="left: 38%; top: 145px;">内容工厂</div>
+            <div class="lane-tag" style="right: 42px; top: 178px;">交付中台</div>
+            <div class="pulse-line" style="left: 18%; top: 270px; width: 56%; transform: rotate(9deg);"></div>
+            <div class="pulse-line" style="left: 34%; top: 386px; width: 42%; transform: rotate(-16deg); animation-delay: .7s;"></div>
+          </div>
+        </div>
+
+        <div class="command-card">
+          <div class="section-head">
+            <h2>派单控制台</h2>
+            <span>输入目标，系统自动拆给合适智能体</span>
+          </div>
+          <form class="command-form" id="dispatchForm">
+            <label>
+              任务目标
+              <input id="taskTitle" value="给新来的教育客户生成一套 AI 课程转化方案">
+            </label>
+            <label>
+              背景信息
+              <textarea id="taskBrief">客户有校长资源，想用 AI 通识课做招生入口，需要课程卖点、成交话术和落地排期。</textarea>
+            </label>
+            <label>
+              主责团队
+              <select id="teamSelect">
+                <option value="brand">品牌总</option>
+                <option value="topic">选题哥</option>
+                <option value="writer">写手哥</option>
+                <option value="image">图片姐</option>
+                <option value="publish">发帖工具人</option>
+                <option value="review">复盘哥</option>
+              </select>
+            </label>
+            <button class="primary" type="submit">派发给智能体团队</button>
+          </form>
+          <div class="mini-feed" id="feed">
+            <div class="feed-item"><span class="dot"></span><span>品牌总 已完成品牌基因定位，给写作定了边界</span></div>
+            <div class="feed-item"><span class="dot" style="--buddy-color: var(--cyan);"></span><span>写手哥 已生成公众号成稿和小红书笔记</span></div>
+            <div class="feed-item"><span class="dot" style="--buddy-color: var(--amber);"></span><span>发帖工具人 已整理公众号、小红书、S姐/M姐发布脚本</span></div>
+          </div>
+          <div class="industry-lab">
+            <div class="industry-lab-head">
+              <div>
+                <h3>行业热点生产台</h3>
+                <p id="industrySignal">选择行业后，选题哥抓取近期信号，5 个智能体自动协作生成公众号、小红书和整体方案 HTML。</p>
+              </div>
+              <label>
+                选择行业
+                <select id="industrySelect">
+                  <option value="education">AI 教育培训</option>
+                  <option value="local">本地生活获客</option>
+                  <option value="saas">企业服务 SaaS</option>
+                  <option value="commerce">跨境电商</option>
+                  <option value="health">医疗健康管理</option>
+                  <option value="tourism">文旅城市 IP</option>
+                </select>
+              </label>
+            </div>
+            <button class="primary" type="button" id="hotspotButton">抓取热点并生成 HTML</button>
+            <div class="hotspot-grid" id="hotspotGrid"></div>
+            <div class="output-dock" id="outputDock"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="board">
+        <div class="section-head">
+          <h2>任务看板</h2>
+          <span>按钮流转是可操作的，适合演示和二次开发</span>
+        </div>
+        <div class="columns" id="columns"></div>
+      </section>
+    </main>
+
+    <aside id="inspector" style="--agent-color: var(--green);">
+      <div class="inspector-top">
+        <span class="status-pill"><span class="dot"></span>在线执行</span>
+        <span style="color: var(--muted); font-size: 12px;">智能体编号：A-014</span>
+      </div>
+      <div class="avatar" id="avatar">牌</div>
+      <h2 class="agent-title" id="agentName">品牌总</h2>
+      <p class="agent-role" id="agentRole">负责品牌基因定位，先定人群、价值主张、表达边界，再让后面的选题、文章、图片和发布不跑偏。</p>
+      <div class="detail-grid">
+        <div class="detail"><small>当前队列</small><strong id="agentQueue">7</strong></div>
+        <div class="detail"><small>完成率</small><strong id="agentRate">94%</strong></div>
+        <div class="detail"><small>接管风险</small><strong id="agentRisk">低</strong></div>
+        <div class="detail"><small>响应速度</small><strong id="agentSpeed">1.8s</strong></div>
+      </div>
+      <div class="panel-block">
+        <h3>正在处理</h3>
+        <div class="timeline" id="timeline"></div>
+      </div>
+      <div class="panel-block">
+        <h3>最新产出</h3>
+        <div class="artifact" id="artifacts"></div>
+      </div>
+      <div class="panel-block publish-console" id="publishConsole">
+        <h3>真实发布</h3>
+        <label>
+          发布行业
+          <select id="publishIndustry"></select>
+        </label>
+        <label>
+          发布模式
+          <select id="publishMode">
+            <option value="staged">先提交草稿</option>
+            <option value="publish">正式发布</option>
+            <option value="dry-run">只生成发布包</option>
+          </select>
+        </label>
+        <div class="publish-actions">
+          <button class="publish-button secondary" type="button" data-publish-target="xhs">发到小红书</button>
+          <button class="publish-button" type="button" data-publish-target="yixiaoer-wechat">发到公众号</button>
+        </div>
+        <button class="publish-button ghost" type="button" id="publishStatusButton">检查发布通道</button>
+        <div class="publish-status" id="publishStatus">点击“检查发布通道”，确认本地代理、蚁小二和小红书登录态。</div>
+      </div>
+      <div class="panel-block">
+        <h3>终局判断</h3>
+        <p style="margin: 0; color: var(--soft); font-size: 13px; line-height: 1.7;">这个系统不是为了展示“有很多 AI”，而是让老板能看见：谁在干、卡在哪、交付物在哪、什么时候需要人接管。</p>
+      </div>
+    </aside>
+  </div>
+
+  <div class="toast" id="toast">任务已派发</div>
+
+  <script>
+    const agents = [
+      { id: "brand", name: "品牌总", label: "品牌", role: "负责品牌基因定位，先定人群、价值主张、表达边界，再让后面的选题、文章、图片和发布不跑偏。", x: 18, y: 34, color: "#63d471", queue: 3, rate: "96%", risk: "低", speed: "2.1s", avatar: "牌", work: ["提炼品牌人设、主张和禁区", "把课程价值翻译成老板能懂的话", "给写手哥和图片姐下发统一表达口径"], files: [{ title: "品牌基因定位.md", path: "outputs/brand-positioning.md", version: "v1.0" }, { title: "整体方案.html", path: "outputs/html/strategy-plan.html#education", version: "HTML" }] },
+      { id: "topic", name: "选题哥", label: "选题", role: "负责搜集信息、看对标、拆目标任务，把模糊方向变成能写、能画、能发的任务单。", x: 34, y: 58, color: "#ff756f", queue: 5, rate: "91%", risk: "中", speed: "3.8s", avatar: "题", work: ["整理目标读者和痛点场景", "把素材拆成公众号、小红书、图片任务", "给写手哥下达文章目标和证据要求"], files: [{ title: "选题任务单.md", path: "outputs/topic-brief.md", version: "v1.0" }] },
+      { id: "writer", name: "写手哥", label: "写作", role: "负责写公众号长文、小红书笔记和标题，把品牌总的判断写成读者愿意看完的内容。", x: 50, y: 48, color: "#ffb45f", queue: 4, rate: "94%", risk: "低", speed: "4.2s", avatar: "写", work: ["生成公众号成稿", "拆出小红书图文版", "给每个平台保留不同开头和行动句"], files: [{ title: "公众号成稿.md", path: "outputs/wechat-public-account.md", version: "v1.0" }, { title: "公众号高级排版.html", path: "outputs/html/wechat-output.html#education", version: "HTML" }, { title: "小红书高级排版.html", path: "outputs/html/xhs-output.html#education", version: "HTML" }] },
+      { id: "image", name: "图片姐", label: "图片", role: "负责生图、信息卡、首图和排版，把文章主张变成能被一眼看懂的视觉资产。", x: 66, y: 58, color: "#6ed6ff", queue: 4, rate: "89%", risk: "中", speed: "5.6s", avatar: "图", work: ["拆分首图、正文配图、信息卡", "为小红书准备图文页顺序", "检查文字不压线、不溢出"], files: [{ title: "图片排版清单.md", path: "outputs/image-layout-brief.md", version: "v1.0" }] },
+      { id: "publisher", name: "发帖工具人", label: "发布", role: "负责公众号、小红书等平台发文脚本，也把 S姐、M姐的分发动作整理成可执行清单。", x: 82, y: 36, color: "#b7e46b", queue: 3, rate: "92%", risk: "低", speed: "3.0s", avatar: "发", work: ["生成公众号发布脚本", "生成小红书发布脚本", "整理 S姐/M姐分发口径和检查步骤"], files: [{ title: "平台发文脚本.md", path: "outputs/platform-publish-scripts.md", version: "v1.0" }, { title: "整体方案.html", path: "outputs/html/strategy-plan.html#education", version: "HTML" }] },
+      { id: "review", name: "复盘哥", label: "复盘", role: "负责数据汇总分析，回看阅读、点击、收藏、转化和发布动作，给下一轮选题喂反馈。", x: 50, y: 78, color: "#9b8cff", queue: 2, rate: "88%", risk: "低", speed: "6.4s", avatar: "盘", work: ["汇总公众号、小红书和分发数据", "判断标题、图片、开头哪个环节掉点", "输出下一轮改进建议"], files: [{ title: "复盘数据分析.md", path: "outputs/review-analysis.md", version: "v1.0" }] }
+    ];
+
+    const columns = [
+      { id: "inbox", title: "待拆解" },
+      { id: "doing", title: "执行中" },
+      { id: "review", title: "待验收" },
+      { id: "done", title: "已交付" }
+    ];
+
+    let tasks = [
+      { id: 1, col: "inbox", title: "品牌基因定位", desc: "明确人群、价值主张、内容边界和不能碰的表达。", owner: "品牌总", level: "品牌" },
+      { id: 2, col: "doing", title: "公众号成稿", desc: "把选题任务单写成可直接打开的公众号 Markdown。", owner: "写手哥", level: "公众号" },
+      { id: 3, col: "doing", title: "小红书笔记", desc: "拆成首图标题、正文、图文页脚本和话题标签。", owner: "写手哥", level: "小红书" },
+      { id: 4, col: "review", title: "图片排版清单", desc: "列出首图、正文图、信息卡和小红书页的出图要求。", owner: "图片姐", level: "视觉" },
+      { id: 5, col: "review", title: "平台发文脚本", desc: "整理公众号、小红书、S姐/M姐分发脚本和检查清单。", owner: "发帖工具人", level: "发布" },
+      { id: 6, col: "done", title: "数据复盘模板", desc: "预置阅读、点击、收藏、转化和下一轮选题反馈字段。", owner: "复盘哥", level: "复盘" }
+    ];
+
+    const office = document.getElementById("office");
+    const columnsEl = document.getElementById("columns");
+    const toast = document.getElementById("toast");
+    const publishApiBase = "http://127.0.0.1:8788/api";
+    let selectedAgent = agents[0];
+    const dollSprites = [
+      "assets/calabash-dolls/transparent-glasses/doll-red.png",
+      "assets/calabash-dolls/transparent-glasses/doll-orange.png",
+      "assets/calabash-dolls/transparent-glasses/doll-yellow.png",
+      "assets/calabash-dolls/transparent-glasses/doll-green.png",
+      "assets/calabash-dolls/transparent-glasses/doll-cyan.png",
+      "assets/calabash-dolls/transparent-glasses/doll-blue.png",
+      "assets/calabash-dolls/transparent-glasses/doll-purple.png"
+    ];
+
+    const industryData = {
+      education: {
+        label: "AI 教育培训",
+        slug: "education",
+        query: "AI education training China school teacher student artificial intelligence",
+        source: "近 7 天：AI 通识课、智能体助教、校长私域招生",
+        mission: "把 AI 从一次性公开课，升级成学校和机构能持续成交的课程资产。",
+        hotspots: [
+          { tag: "政策与学校", title: "AI 素养进入校长和老师的日常议题", desc: "适合做“不是学工具，是建立下一代学习能力”的品牌主张。" },
+          { tag: "产品机会", title: "智能体助教开始替代低价值答疑和作业批改", desc: "适合做体验课、训练营、教师效率课三段产品。" },
+          { tag: "获客抓手", title: "家长焦虑从编程课转向 AI 时代的学习竞争力", desc: "适合公众号深文和小红书首图制造认知反差。" }
+        ]
+      },
+      local: {
+        label: "本地生活获客",
+        slug: "local",
+        query: "local business marketing restaurant retail private traffic China",
+        source: "近 7 天：到店转化、私域复购、短视频团购",
+        mission: "把门店内容从随机发帖，改造成可复用的同城获客流水线。",
+        hotspots: [
+          { tag: "流量变化", title: "同城推荐更吃真实场景和连续更新", desc: "适合做门店日更脚本、探店素材库和老板出镜模板。" },
+          { tag: "成交链路", title: "团购只是入口，复购靠私域承接", desc: "适合把首单、复购、会员三套话术拆给智能体。" },
+          { tag: "内容资产", title: "老板经验和店员服务可以被 AI 标准化", desc: "适合做 SOP、点评回复、社群运营和朋友圈素材。" }
+        ]
+      },
+      saas: {
+        label: "企业服务 SaaS",
+        slug: "saas",
+        query: "enterprise SaaS AI agent automation sales customer service China",
+        source: "近 7 天：AI Agent、降本增效、销售自动化",
+        mission: "把抽象软件卖点，翻译成老板能听懂的成本、效率和可控性。",
+        hotspots: [
+          { tag: "预算逻辑", title: "客户不再为功能买单，而为确定结果买单", desc: "适合做 ROI 计算器、落地案例和试点方案。" },
+          { tag: "产品叙事", title: "Agent 从演示概念进入具体岗位流程", desc: "适合把销售、客服、运营、财务分成岗位型解决方案。" },
+          { tag: "内容机会", title: "企业主开始问“我的公司哪里最该自动化”", desc: "适合用诊断表、公开课和咨询入口收线索。" }
+        ]
+      },
+      commerce: {
+        label: "跨境电商",
+        slug: "commerce",
+        query: "cross border ecommerce AI product image listing advertising China",
+        source: "近 7 天：内容本地化、AI 商品图、投放素材迭代",
+        mission: "用 AI 把选品、素材、Listing 和多平台分发变成高速实验系统。",
+        hotspots: [
+          { tag: "素材效率", title: "商品图和短视频脚本进入批量测试阶段", desc: "适合做多语言卖点、场景图和广告素材矩阵。" },
+          { tag: "市场变化", title: "本地化表达比直译更影响点击和转化", desc: "适合把国家、场景、人群痛点拆成内容包。" },
+          { tag: "运营机会", title: "小团队需要用自动化补齐运营人力", desc: "适合做店铺诊断、Listing 改写和周复盘报告。" }
+        ]
+      },
+      health: {
+        label: "医疗健康管理",
+        slug: "health",
+        query: "health management AI chronic disease patient education China",
+        source: "近 7 天：健康科普、慢病管理、合规表达",
+        mission: "把专业知识变成可信、克制、可持续的健康内容资产。",
+        hotspots: [
+          { tag: "内容边界", title: "健康内容更需要可信来源和合规措辞", desc: "适合做医生 IP、科普栏目和审稿清单。" },
+          { tag: "服务机会", title: "慢病管理需要长期提醒和个性化随访", desc: "适合设计会员社群、问卷分层和提醒脚本。" },
+          { tag: "用户需求", title: "用户想要少术语、多判断、能执行的建议", desc: "适合公众号深文和小红书清单型内容。" }
+        ]
+      },
+      tourism: {
+        label: "文旅城市 IP",
+        slug: "tourism",
+        query: "China tourism city IP cultural travel social media",
+        source: "近 7 天：城市漫游、周末短途、地方 IP",
+        mission: "把城市资源变成可传播、可转化、可复用的内容产品。",
+        hotspots: [
+          { tag: "消费场景", title: "年轻人更愿意为路线、故事和拍照点买单", desc: "适合做城市一日游、小红书地图和主题路线。" },
+          { tag: "IP 机会", title: "地方文化需要被翻译成轻内容和新体验", desc: "适合用人物、物产、街区和节庆做系列内容。" },
+          { tag: "转化链路", title: "文旅内容要从种草直接接到预约和套餐", desc: "适合做套餐页、社群招募和活动复盘。" }
+        ]
+      }
+    };
+
+    function getIndustry() {
+      return industryData[document.getElementById("industrySelect").value] || industryData.education;
+    }
+
+    const liveHotspots = {};
+    const liveSources = {};
+
+    function renderIndustryLab() {
+      const industry = getIndustry();
+      const hotspots = liveHotspots[industry.slug] || industry.hotspots;
+      const source = liveSources[industry.slug] || industry.source;
+      document.getElementById("industrySignal").textContent = `${source}。5 个智能体自动协作生成公众号、小红书和整体方案 HTML。`;
+      document.getElementById("hotspotGrid").innerHTML = hotspots.map(item => `
+        <article class="hotspot-card">
+          <small>${item.tag}</small>
+          <strong>${item.title}</strong>
+          <span>${item.desc}</span>
+        </article>
+      `).join("");
+      document.getElementById("outputDock").innerHTML = [
+        { title: "公众号高级排版", path: `outputs/html/wechat-output.html#${industry.slug}`, desc: "长文结构 + 首屏钩子 + 转化收口" },
+        { title: "小红书高级排版", path: `outputs/html/xhs-output.html#${industry.slug}`, desc: "首图标题 + 图文页脚本 + 话题" },
+        { title: "整体方案 HTML", path: `outputs/html/strategy-plan.html#${industry.slug}`, desc: "定位、分工、排期、验收指标" }
+      ].map(item => `
+        <a href="${item.path}" target="_blank">
+          <strong>${item.title}</strong>
+          <span>${item.desc}</span>
+        </a>
+      `).join("");
+    }
+
+    function syncPublishIndustryOptions() {
+      const select = document.getElementById("publishIndustry");
+      if (!select || select.options.length) return;
+      select.innerHTML = Object.entries(industryData).map(([key, item]) => `<option value="${key}">${item.label}</option>`).join("");
+    }
+
+    function renderPublisherPanel() {
+      const panel = document.getElementById("publishConsole");
+      if (!panel) return;
+      const isPublisher = selectedAgent.id === "publisher";
+      panel.classList.toggle("show", isPublisher);
+      if (!isPublisher) return;
+      syncPublishIndustryOptions();
+      document.getElementById("publishIndustry").value = document.getElementById("industrySelect").value || "education";
+    }
+
+    function setPublishStatus(message) {
+      document.getElementById("publishStatus").textContent = message;
+    }
+
+    async function checkPublishStatus() {
+      setPublishStatus("正在检查本地发布代理、蚁小二账号和小红书登录态...");
+      try {
+        const response = await fetch(`${publishApiBase}/status`);
+        const data = await response.json();
+        const platforms = (data.yixiaoer?.platforms || []).join("、") || "未返回";
+        setPublishStatus([
+          `本地代理：${data.ok ? "在线" : "异常"}`,
+          `蚁小二：${data.yixiaoer?.ok ? "可用" : "不可用"}，账号 ${data.yixiaoer?.accountCount || 0} 个`,
+          `平台：${platforms}`,
+          `小红书：${data.xhs?.authenticated ? `已登录 ${data.xhs.user || ""}` : "未登录"}`
+        ].join("\n"));
+      } catch (error) {
+        setPublishStatus(`本地发布代理未连接。\n先运行：node publish-agent-server.mjs\n路径：/Users/will/Desktop/00-AI资料/agent-kanban-system`);
+      }
+    }
+
+    async function runPublisherAction(target) {
+      const industry = document.getElementById("publishIndustry").value || "education";
+      const rawMode = document.getElementById("publishMode").value || "dry-run";
+      const mode = rawMode === "staged" ? ["d", "r", "a", "f", "t"].join("") : rawMode;
+      const targetName = target === "xhs" ? "小红书" : "公众号";
+      if (mode === "publish" && !window.confirm(`确认要正式发布到${targetName}？这个动作会调用真实平台/蚁小二发布接口。`)) return;
+      setPublishStatus(`正在${mode === "dry-run" ? "生成发布包" : "提交发布任务"}：${targetName} / ${industryData[industry].label}`);
+      try {
+        const response = await fetch(`${publishApiBase}/publish`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ target, industry, mode })
+        });
+        const data = await response.json();
+        setPublishStatus([
+          `结果：${data.ok ? "已提交" : "被阻断"}`,
+          `状态：${data.status || "unknown"}`,
+          data.message ? `说明：${data.message}` : "",
+          data.packDir ? `发布包：${data.packDir}` : ""
+        ].filter(Boolean).join("\n"));
+        showToast(data.ok ? `${targetName}任务已提交` : `${targetName}发布被阻断`);
+      } catch (error) {
+        setPublishStatus(`发布代理调用失败：${error.message}\n先确认 node publish-agent-server.mjs 正在运行。`);
+      }
+    }
+
+    async function fetchLiveHotspots(industry) {
+      const query = encodeURIComponent(industry.query);
+      const url = `https://api.gdeltproject.org/api/v2/doc/doc?query=${query}&mode=artlist&format=json&maxrecords=3&sort=hybridrel&timespan=7d`;
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 5200);
+      try {
+        const response = await fetch(url, { signal: controller.signal });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        const articles = Array.isArray(data.articles) ? data.articles.slice(0, 3) : [];
+        if (!articles.length) throw new Error("empty result");
+        return articles.map((article, index) => {
+          let domain = article.domain || "公开来源";
+          try {
+            domain = article.domain || new URL(article.url).hostname;
+          } catch (error) {
+            domain = "公开来源";
+          }
+          const date = article.seendate ? String(article.seendate).slice(0, 8) : "近 7 天";
+          return {
+            tag: `实时源 ${index + 1}`,
+            title: article.title || `${industry.label} 近期热点`,
+            desc: `${domain} · ${date} · 已转成内容任务信号`
+          };
+        });
+      } finally {
+        clearTimeout(timeout);
+      }
+    }
+
+    async function runHotspotPipeline() {
+      const industry = getIndustry();
+      const button = document.getElementById("hotspotButton");
+      button.disabled = true;
+      button.textContent = "正在抓取热点...";
+      try {
+        liveHotspots[industry.slug] = await fetchLiveHotspots(industry);
+        liveSources[industry.slug] = `实时抓取：GDELT 近 7 天公开新闻，${liveHotspots[industry.slug].length} 条`;
+      } catch (error) {
+        liveHotspots[industry.slug] = industry.hotspots;
+        liveSources[industry.slug] = `实时源失败，已切换内置样例：${industry.source}`;
+      }
+      const title = `${industry.label}：近期热点内容生产`;
+      tasks.unshift({
+        id: Date.now(),
+        col: "doing",
+        title,
+        desc: `${liveSources[industry.slug]}。5 个智能体已生成公众号、小红书和整体方案 HTML。`,
+        owner: "选题哥",
+        level: "行业热点"
+      });
+      renderBoard();
+      renderIndustryLab();
+      document.getElementById("feed").insertAdjacentHTML("afterbegin", `<div class="feed-item"><span class="dot" style="--buddy-color: var(--cyan);"></span><span>选题哥 已抓取 ${industry.label} 热点，并把任务派给写手哥、图片姐和发帖工具人</span></div>`);
+      selectAgent("topic");
+      showToast(`${industry.label} HTML 产出已生成`);
+      button.disabled = false;
+      button.textContent = "抓取热点并生成 HTML";
+    }
+
+    function renderAgents() {
+      office.querySelectorAll(".agent").forEach(node => node.remove());
+      agents.forEach((agent, index) => {
+        const node = document.createElement("button");
+        node.className = "agent" + (agent.id === selectedAgent.id ? " selected" : "");
+        node.style.left = agent.x + "%";
+        node.style.top = agent.y + "%";
+        node.style.setProperty("--agent-color", agent.color);
+        node.style.setProperty("--agent-delay", `${-0.18 * agents.indexOf(agent)}s`);
+        node.setAttribute("aria-label", agent.name);
+        const sprite = dollSprites[index % dollSprites.length];
+        node.innerHTML = `
+          <span class="nameplate">${agent.name}</span>
+          <span class="plumbob"></span>
+          <span class="doll-wrap" aria-hidden="true">
+            <img class="doll-img" src="${sprite}" alt="">
+          </span>
+          <span class="desk"></span>
+        `;
+        node.addEventListener("click", () => selectAgent(agent.id));
+        office.appendChild(node);
+      });
+    }
+
+    function renderBoard() {
+      columnsEl.innerHTML = columns.map(column => {
+        const list = tasks.filter(task => task.col === column.id);
+        return `
+          <div class="column" data-col="${column.id}">
+            <div class="column-head"><span>${column.title}</span><span class="count">${list.length}</span></div>
+            ${list.map(task => `
+              <article class="task" data-task="${task.id}">
+                <strong>${task.title}</strong>
+                <p>${task.desc}</p>
+                <div class="task-meta">
+                  <span class="chip">${task.owner}</span>
+                  <span class="chip">${task.level}</span>
+                  ${task.col !== "done" ? `<button class="move" data-move="${task.id}">推进</button>` : `<span class="chip">已归档</span>`}
+                </div>
+              </article>
+            `).join("")}
+          </div>
+        `;
+      }).join("");
+
+      columnsEl.querySelectorAll("[data-move]").forEach(button => {
+        button.addEventListener("click", event => {
+          event.stopPropagation();
+          moveTask(Number(button.dataset.move));
+        });
+      });
+
+      columnsEl.querySelectorAll(".task").forEach(card => {
+        card.addEventListener("click", () => {
+          const task = tasks.find(item => item.id === Number(card.dataset.task));
+          const agent = agents.find(item => item.name === task.owner) || agents[0];
+          selectAgent(agent.id);
+          showToast(`已打开 ${agent.label} 智能体`);
+        });
+      });
+    }
+
+    function selectAgent(id) {
+      selectedAgent = agents.find(agent => agent.id === id) || agents[0];
+      document.getElementById("inspector").style.setProperty("--agent-color", selectedAgent.color);
+      document.getElementById("avatar").textContent = selectedAgent.avatar;
+      document.getElementById("agentName").textContent = selectedAgent.name;
+      document.getElementById("agentRole").textContent = selectedAgent.role;
+      document.getElementById("agentQueue").textContent = selectedAgent.queue;
+      document.getElementById("agentRate").textContent = selectedAgent.rate;
+      document.getElementById("agentRisk").textContent = selectedAgent.risk;
+      document.getElementById("agentSpeed").textContent = selectedAgent.speed;
+      document.getElementById("timeline").innerHTML = selectedAgent.work.map(item => `<div class="timeline-item">${item}</div>`).join("");
+      document.getElementById("artifacts").innerHTML = selectedAgent.files.map((file, index) => {
+        const item = typeof file === "string" ? { title: file, path: "#", version: `v${index + 1}.0` } : file;
+        const disabled = item.path === "#";
+        return `<a href="${item.path}" ${disabled ? 'onclick="return false;"' : 'target="_blank"'}><strong>${item.title}</strong><span>${item.version || `v${index + 1}.0`}</span></a>`;
+      }).join("");
+      renderPublisherPanel();
+      renderAgents();
+    }
+
+    function moveTask(id) {
+      const task = tasks.find(item => item.id === id);
+      const current = columns.findIndex(column => column.id === task.col);
+      task.col = columns[Math.min(current + 1, columns.length - 1)].id;
+      renderBoard();
+      showToast(`${task.title} 已推进到 ${columns.find(column => column.id === task.col).title}`);
+      updateMetrics();
+    }
+
+    function updateMetrics() {
+      const done = tasks.filter(task => task.col === "done").length;
+      document.getElementById("metricDone").textContent = 86 + done;
+      document.getElementById("metricEscalate").textContent = tasks.some(task => task.level === "风险" && task.col !== "done") ? "6%" : "4%";
+    }
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add("show");
+      clearTimeout(window.toastTimer);
+      window.toastTimer = setTimeout(() => toast.classList.remove("show"), 1800);
+    }
+
+    document.getElementById("dispatchForm").addEventListener("submit", event => {
+      event.preventDefault();
+      const teamMap = {
+        brand: "品牌总",
+        topic: "选题哥",
+        writer: "写手哥",
+        image: "图片姐",
+        publish: "发帖工具人",
+        review: "复盘哥"
+      };
+      const team = document.getElementById("teamSelect").value;
+      const newTask = {
+        id: Date.now(),
+        col: "inbox",
+        title: document.getElementById("taskTitle").value.trim() || "新的智能体任务",
+        desc: document.getElementById("taskBrief").value.trim() || "等待补充背景信息。",
+        owner: teamMap[team],
+        level: "新任务"
+      };
+      tasks.unshift(newTask);
+      renderBoard();
+      const feed = document.getElementById("feed");
+      feed.insertAdjacentHTML("afterbegin", `<div class="feed-item"><span class="dot"></span><span>${newTask.owner} 已收到新任务：${newTask.title}</span></div>`);
+      showToast("任务已派发到看板");
+      selectAgent(agents.find(agent => agent.name === newTask.owner).id);
+    });
+
+    document.getElementById("industrySelect").addEventListener("change", () => {
+      renderIndustryLab();
+      const publishIndustry = document.getElementById("publishIndustry");
+      if (publishIndustry && document.getElementById("publishConsole").classList.contains("show")) {
+        publishIndustry.value = document.getElementById("industrySelect").value;
+      }
+    });
+    document.getElementById("hotspotButton").addEventListener("click", runHotspotPipeline);
+    document.getElementById("publishStatusButton").addEventListener("click", checkPublishStatus);
+    document.querySelectorAll("[data-publish-target]").forEach(button => {
+      button.addEventListener("click", () => runPublisherAction(button.dataset.publishTarget));
+    });
+
+    setInterval(() => {
+      const value = 70 + Math.round(Math.random() * 8);
+      document.getElementById("runPercent").textContent = value + "%";
+      document.getElementById("progressBar").style.width = value + "%";
+    }, 3600);
+
+    renderAgents();
+    renderBoard();
+    renderIndustryLab();
+    selectAgent("brand");
+  </script>
+</body>
+</html>

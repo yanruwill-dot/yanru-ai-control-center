@@ -1,0 +1,6 @@
+verification.md
+output/
+outputs/publish-agent/
+publish-agent-server.mjs
+*.log
+*.pid
