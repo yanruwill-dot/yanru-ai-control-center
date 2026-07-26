@@ -168,6 +168,7 @@ function payload() {
     script: $("#script").value.trim(),
     voice: $("#voice").value,
     motion_preset: document.querySelector('input[name="motion"]:checked')?.value || "smart_push",
+    editing_style: document.querySelector('input[name="editStyle"]:checked')?.value || "jianying_big",
     auto_cut: $("#autoCut").checked,
     threshold_db: Number($("#threshold").value),
     min_silence: Number($("#silence").value)
@@ -224,13 +225,19 @@ $("#cloneBtn").addEventListener("click", async () => {
   }
 });
 
-document.querySelectorAll('input[name="motion"]').forEach(input => {
-  input.addEventListener("change", () => {
-    document.querySelectorAll(".motion-card").forEach(card => card.classList.remove("active"));
-    input.closest(".motion-card").classList.add("active");
-    note(`已选择动效 Skill：${input.closest(".motion-card").querySelector("b").textContent}`);
+function bindCardGroup(name, prefix) {
+  document.querySelectorAll(`input[name="${name}"]`).forEach(input => {
+    input.addEventListener("change", () => {
+      const grid = input.closest(".motion-grid");
+      grid.querySelectorAll(".motion-card").forEach(card => card.classList.remove("active"));
+      input.closest(".motion-card").classList.add("active");
+      note(`${prefix}：${input.closest(".motion-card").querySelector("b").textContent}`);
+    });
   });
-});
+}
+
+bindCardGroup("editStyle", "已选择剪辑模板");
+bindCardGroup("motion", "已选择动效 Skill");
 
 $("#analyzeBtn").addEventListener("click", async () => {
   try {
@@ -301,7 +308,7 @@ $("#script").dispatchEvent(new Event("input"));
 
 $("#openRuns").addEventListener("click", () => {
   if (API_ORIGIN) {
-    location.href = "../../../video-agent-workbench/downloads/viral-video-agent-workbench-v1.2.1.zip";
+    location.href = "../../../video-agent-workbench/downloads/viral-video-agent-workbench-v1.3.0.zip";
     return;
   }
   note("产物目录：outputs/video-agent-workbench-v1/runs");

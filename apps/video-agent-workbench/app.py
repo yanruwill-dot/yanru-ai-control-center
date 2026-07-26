@@ -82,6 +82,7 @@ def run_job(job_id: str, kind: str, payload: dict) -> None:
                 threshold_db=int(payload.get("threshold_db", -35)),
                 min_silence=float(payload.get("min_silence", 0.65)),
                 motion_preset=str(payload.get("motion_preset", "smart_push")),
+                editing_style=str(payload.get("editing_style", "classic")),
                 progress=lambda value, message: update_job(job_id, progress=value, message=message)
             )
         elif kind != "clone":
@@ -162,7 +163,7 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json({
                 "ok": True,
                 "service": "一键追爆视频工作台",
-                "version": "1.2.1",
+                "version": "1.3.0",
                 "voice_clone": engine_status(),
             })
             return
