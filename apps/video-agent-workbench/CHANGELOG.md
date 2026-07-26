@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.3.0 — 2026-07-27
+
+- 研究 GitHub 上 Remotion TikTok Template、Short Video Maker、Auto-Editor 和 MoneyPrinterTurbo 的公开剪辑实现。
+- 在自动剪辑面板新增五套模板：经典口播、剪映感大字弹跳、开拍感口播重点、卡点快切冲击字幕、知识口播关键词高亮。
+- 大字模板真实进入 FFmpeg 成片，支持粗描边、自动重点词着色、弹入、轻推和冲击缩放。
+- 剪辑模板与镜头动效保持独立，可自由组合。
+
 ## 1.2.1 — 2026-07-27
 
 - GitHub 中台恢复原工作台界面和视频上传入口。

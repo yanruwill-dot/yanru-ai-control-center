@@ -2,7 +2,18 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from pipeline import MOTION_PRESETS, PipelineError, keep_intervals, motion_filter, split_script, timeline_for, write_srt
+from pipeline import (
+    EDIT_STYLES,
+    MOTION_PRESETS,
+    PipelineError,
+    caption_animation_filter,
+    caption_overlay,
+    keep_intervals,
+    motion_filter,
+    split_script,
+    timeline_for,
+    write_srt,
+)
 from voice_clone import VoiceCloneError, audio_probe, voice_id_for
 
 
@@ -41,6 +52,29 @@ class PipelineUnitTests(unittest.TestCase):
     def test_unknown_motion_skill_is_rejected(self):
         with self.assertRaises(PipelineError):
             motion_filter("fake-effect")
+
+    def test_every_editing_style_renders_a_full_frame_caption(self):
+        from PIL import Image
+
+        with tempfile.TemporaryDirectory() as directory:
+            for style in EDIT_STYLES:
+                path = Path(directory) / f"{style}.png"
+                caption_overlay("老板要的是AI获客结果", path, style)
+                self.assertTrue(path.is_file())
+                with Image.open(path) as image:
+                    self.assertEqual(image.size, (1080, 1920))
+
+    def test_big_text_styles_have_real_entry_animation(self):
+        for style in ("jianying_big", "keyword_punch"):
+            chain, x, y = caption_animation_filter(2, style, 1.25, "caption2")
+            self.assertIn("scale=", chain)
+            self.assertIn("fade=", chain)
+            self.assertEqual(x, "(W-w)/2")
+            self.assertEqual(y, "(H-h)/2")
+
+    def test_unknown_editing_style_is_rejected(self):
+        with self.assertRaises(PipelineError):
+            caption_animation_filter(2, "fake-style", 0, "caption2")
 
     def test_clone_voice_id_is_provider_safe(self):
         value = voice_id_for("我的 专属 音色")

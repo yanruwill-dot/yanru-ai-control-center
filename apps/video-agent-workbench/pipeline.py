@@ -154,6 +154,34 @@ MOTION_PRESETS = {
     },
 }
 
+EDIT_STYLES = {
+    "classic": {
+        "name": "经典口播",
+        "description": "稳重底栏字幕，适合正式讲解",
+        "max_chars": 18,
+    },
+    "jianying_big": {
+        "name": "剪映感·大字弹跳",
+        "description": "超大白字、黑描边、重点黄字和快速弹入",
+        "max_chars": 8,
+    },
+    "kaipai_talk": {
+        "name": "开拍感·口播重点",
+        "description": "单屏短句、重点色块和轻推入场",
+        "max_chars": 10,
+    },
+    "keyword_punch": {
+        "name": "卡点快切·冲击字幕",
+        "description": "一屏一重点，大字冲击并跟随节奏变焦",
+        "max_chars": 6,
+    },
+    "knowledge_highlight": {
+        "name": "知识口播·关键词高亮",
+        "description": "高信息密度字幕，自动强调业务关键词",
+        "max_chars": 14,
+    },
+}
+
 
 def motion_filter(preset: str) -> str:
     if preset not in MOTION_PRESETS:
@@ -244,6 +272,44 @@ def wrap_caption(text: str, limit: int = 12) -> str:
     return "\n".join(text[index:index + limit] for index in range(0, len(text), limit))
 
 
+def emphasis_term(text: str) -> str:
+    candidates = (
+        "人工智能", "自动化", "智能体", "获客", "成交", "客户", "老板", "赚钱",
+        "结果", "流程", "内容", "效率", "成本", "增长", "AI",
+    )
+    for candidate in candidates:
+        if candidate in text:
+            return candidate
+    clean = re.sub(r"[，。！？、,.!?；;：:\s]", "", text)
+    return clean[-min(4, len(clean)):] if clean else ""
+
+
+def draw_rich_line(
+    draw: ImageDraw.ImageDraw,
+    line: str,
+    y: int,
+    text_font: ImageFont.FreeTypeFont,
+    accent: tuple[int, int, int, int],
+    stroke_width: int,
+) -> None:
+    term = emphasis_term(line)
+    start = line.find(term) if term else -1
+    pieces = [(line, "white")] if start < 0 else [
+        (line[:start], "white"),
+        (term, accent),
+        (line[start + len(term):], "white"),
+    ]
+    widths = [draw.textlength(piece, font=text_font) for piece, _ in pieces]
+    x = (1080 - sum(widths)) / 2
+    for (piece, fill), width in zip(pieces, widths):
+        if piece:
+            draw.text(
+                (x, y), piece, font=text_font, fill=fill,
+                stroke_width=stroke_width, stroke_fill=(0, 0, 0, 255),
+            )
+        x += width
+
+
 def title_overlay(title: str, path: Path) -> None:
     canvas = Image.new("RGBA", (1080, 1920), (0, 0, 0, 0))
     draw = ImageDraw.Draw(canvas)
@@ -254,9 +320,50 @@ def title_overlay(title: str, path: Path) -> None:
     canvas.save(path)
 
 
-def caption_overlay(text: str, path: Path) -> None:
+def caption_overlay(text: str, path: Path, editing_style: str = "classic") -> None:
+    if editing_style not in EDIT_STYLES:
+        raise PipelineError(f"未知剪辑模板：{editing_style}")
     canvas = Image.new("RGBA", (1080, 1920), (0, 0, 0, 0))
     draw = ImageDraw.Draw(canvas)
+    if editing_style == "jianying_big":
+        lines = [text[index:index + 8] for index in range(0, len(text), 8)][:2]
+        text_font = font(108, True)
+        y = 1120 - (len(lines) - 1) * 66
+        for line in lines:
+            draw_rich_line(draw, line, y, text_font, (255, 228, 64, 255), 10)
+            y += 132
+        canvas.save(path)
+        return
+    if editing_style == "kaipai_talk":
+        lines = [text[index:index + 10] for index in range(0, len(text), 10)][:2]
+        text_font = font(88, True)
+        y = 1130 - (len(lines) - 1) * 54
+        box_height = len(lines) * 108 + 54
+        draw.rounded_rectangle((62, y - 24, 1018, y - 24 + box_height), 30, fill=(8, 10, 15, 205))
+        for line in lines:
+            draw_rich_line(draw, line, y, text_font, (68, 241, 218, 255), 6)
+            y += 108
+        canvas.save(path)
+        return
+    if editing_style == "keyword_punch":
+        lines = [text[index:index + 6] for index in range(0, len(text), 6)][:2]
+        text_font = font(132, True)
+        y = 840 - (len(lines) - 1) * 80
+        for line in lines:
+            draw_rich_line(draw, line, y, text_font, (255, 62, 205, 255), 12)
+            y += 160
+        canvas.save(path)
+        return
+    if editing_style == "knowledge_highlight":
+        lines = [text[index:index + 14] for index in range(0, len(text), 14)][:2]
+        text_font = font(76, True)
+        y = 1390 - (len(lines) - 1) * 48
+        draw.rounded_rectangle((48, y - 26, 1032, y + len(lines) * 94 + 12), 26, fill=(0, 0, 0, 205))
+        for line in lines:
+            draw_rich_line(draw, line, y, text_font, (57, 238, 215, 255), 5)
+            y += 94
+        canvas.save(path)
+        return
     wrapped = wrap_caption(text, 13)
     box = draw.multiline_textbbox((0, 0), wrapped, font=font(60, True), spacing=10, stroke_width=2)
     width = min(980, box[2] - box[0] + 84)
@@ -269,6 +376,34 @@ def caption_overlay(text: str, path: Path) -> None:
         fill="white", spacing=10, stroke_width=2, stroke_fill=(0, 0, 0, 255)
     )
     canvas.save(path)
+
+
+def caption_animation_filter(input_index: int, editing_style: str, start: float, label: str) -> tuple[str, str, str]:
+    if editing_style not in EDIT_STYLES:
+        raise PipelineError(f"未知剪辑模板：{editing_style}")
+    source = f"[{input_index}:v]"
+    if editing_style in {"jianying_big", "keyword_punch"}:
+        scale = "if(lt(t,0.10),0.82+2.6*t,if(lt(t,0.18),1.08-(t-0.10),1))"
+        chain = (
+            f"{source}format=rgba,"
+            f"scale=w='iw*{scale}':h='ih*{scale}':eval=frame,"
+            f"fade=t=in:st=0:d=0.08:alpha=1,setpts=PTS-STARTPTS+{start:.3f}/TB[{label}]"
+        )
+        return chain, "(W-w)/2", "(H-h)/2"
+    if editing_style == "kaipai_talk":
+        chain = (
+            f"{source}format=rgba,fade=t=in:st=0:d=0.14:alpha=1,"
+            f"setpts=PTS-STARTPTS+{start:.3f}/TB[{label}]"
+        )
+        return chain, "0", f"if(lt(t-{start:.3f},0.18),30*(1-(t-{start:.3f})/0.18),0)"
+    if editing_style == "knowledge_highlight":
+        chain = (
+            f"{source}format=rgba,fade=t=in:st=0:d=0.10:alpha=1,"
+            f"setpts=PTS-STARTPTS+{start:.3f}/TB[{label}]"
+        )
+        return chain, "0", "0"
+    chain = f"{source}format=rgba,setpts=PTS-STARTPTS+{start:.3f}/TB[{label}]"
+    return chain, "0", "0"
 
 
 def make_contact_sheet(video: Path, output: Path) -> None:
@@ -306,6 +441,7 @@ def render_video(
     threshold_db: int = -35,
     min_silence: float = 0.65,
     motion_preset: str = "smart_push",
+    editing_style: str = "classic",
     progress=None
 ) -> dict:
     def emit(value: int, message: str) -> None:
@@ -322,7 +458,9 @@ def render_video(
     emit(36, "正在生成 AI 配音")
     voice_path = synthesize_voice(script, voice, out_dir, log)
     voice_duration = duration_of(voice_path)
-    lines = split_script(script)
+    if editing_style not in EDIT_STYLES:
+        raise PipelineError(f"未知剪辑模板：{editing_style}")
+    lines = split_script(script, max_chars=EDIT_STYLES[editing_style]["max_chars"])
     timeline = timeline_for(lines, voice_duration)
     write_srt(timeline, out_dir / "captions.srt")
     emit(54, "正在生成字幕和标题层")
@@ -332,7 +470,7 @@ def render_video(
     overlays.append((title_path, None))
     for item in timeline:
         caption_path = out_dir / f"caption-{item['index']:02d}.png"
-        caption_overlay(item["text"], caption_path)
+        caption_overlay(item["text"], caption_path, editing_style)
         overlays.append((caption_path, (item["start"], item["end"])))
 
     command = ["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-stream_loop", "-1", "-i", str(prepared)]
@@ -345,10 +483,16 @@ def render_video(
     previous = "base"
     for index, (_, timing) in enumerate(overlays, 1):
         output_label = f"layer{index}"
-        enable = ""
         if timing:
-            enable = f":enable='between(t,{timing[0]:.3f},{timing[1]:.3f})'"
-        filters.append(f"[{previous}][{index}:v]overlay=0:0{enable}[{output_label}]")
+            caption_label = f"caption{index}"
+            animation, x, y = caption_animation_filter(index, editing_style, timing[0], caption_label)
+            filters.append(animation)
+            filters.append(
+                f"[{previous}][{caption_label}]overlay=x='{x}':y='{y}':"
+                f"enable='between(t,{timing[0]:.3f},{timing[1]:.3f})'[{output_label}]"
+            )
+        else:
+            filters.append(f"[{previous}][{index}:v]overlay=0:0[{output_label}]")
         previous = output_label
 
     final = out_dir / "final.mp4"
@@ -375,6 +519,8 @@ def render_video(
         "voice": voice,
         "motion_preset": motion_preset,
         "motion": MOTION_PRESETS[motion_preset],
+        "editing_style": editing_style,
+        "editing": EDIT_STYLES[editing_style],
         "auto_cut": cut_report,
         "source": str(source),
         "prepared_source": str(prepared)

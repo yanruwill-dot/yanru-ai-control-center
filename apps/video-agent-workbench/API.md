@@ -22,6 +22,7 @@
   "title": "老板真正需要的，不是一个AI工具",
   "script": "口播文案",
   "voice": "moss:<voice_id> 或 minimax:<voice_id>",
+  "editing_style": "jianying_big",
   "motion_preset": "smart_push",
   "auto_cut": true,
   "threshold_db": -35,
@@ -42,3 +43,5 @@
 声音样本支持 MP3/M4A/WAV、10 秒到 5 分钟、不超过 20 MB。`consent=false` 会被拒绝。
 
 动效可选值：`none`、`smart_push`、`breath_focus`、`beat_impact`。
+
+剪辑模板可选值：`classic`、`jianying_big`、`kaipai_talk`、`keyword_punch`、`knowledge_highlight`。
