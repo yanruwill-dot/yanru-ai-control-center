@@ -1540,6 +1540,7 @@
             <span class="tool-links">
               <a href="industry-hotspot-html-factory.html" target="_blank">行业热点 HTML 工厂</a>
               <a href="industry-hotspot-solution.html" target="_blank">整体方案 HTML</a>
+              <a href="video-agent-workbench/" target="_blank">AI 视频智能体</a>
             </span>
           </div>
         </article>
@@ -1848,7 +1849,7 @@
           `小红书：${data.xhs?.authenticated ? `已登录 ${data.xhs.user || ""}` : "未登录"}`
         ].join("\n"));
       } catch (error) {
-        setPublishStatus(`本地发布代理未连接。\n先运行：node publish-agent-server.mjs\n路径：/Users/will/Desktop/00-AI资料/agent-kanban-system`);
+        setPublishStatus(`本地发布代理未连接。\n请在本地中台项目目录运行：node publish-agent-server.mjs`);
       }
     }
 
