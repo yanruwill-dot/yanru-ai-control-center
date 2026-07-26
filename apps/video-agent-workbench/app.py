@@ -28,6 +28,7 @@ VOICE_UPLOADS.mkdir(exist_ok=True)
 VOICES.mkdir(exist_ok=True)
 JOBS: dict[str, dict] = {}
 LOCK = threading.Lock()
+GITHUB_PAGES_ORIGIN = "https://yanruwill-dot.github.io"
 
 
 def save_job(job_id: str) -> None:
@@ -110,11 +111,20 @@ def create_job(kind: str, payload: dict) -> dict:
 class Handler(BaseHTTPRequestHandler):
     server_version = "ViralVideoWorkbench/1.0"
 
+    def send_cors_headers(self) -> None:
+        if self.headers.get("Origin") == GITHUB_PAGES_ORIGIN:
+            self.send_header("Access-Control-Allow-Origin", GITHUB_PAGES_ORIGIN)
+            self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+            self.send_header("Access-Control-Allow-Headers", "Content-Type")
+            self.send_header("Access-Control-Allow-Private-Network", "true")
+            self.send_header("Vary", "Origin")
+
     def send_json(self, value: dict, status: int = 200) -> None:
         body = json.dumps(value, ensure_ascii=False).encode("utf-8")
         self.send_response(status)
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", str(len(body)))
+        self.send_cors_headers()
         self.end_headers()
         self.wfile.write(body)
 
@@ -135,8 +145,15 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Content-Type", mime)
         self.send_header("Content-Length", str(len(data)))
         self.send_header("Cache-Control", "no-store")
+        self.send_cors_headers()
         self.end_headers()
         self.wfile.write(data)
+
+    def do_OPTIONS(self) -> None:
+        self.send_response(204)
+        self.send_cors_headers()
+        self.send_header("Content-Length", "0")
+        self.end_headers()
 
     def do_GET(self) -> None:
         parsed = urlparse(self.path)
@@ -145,7 +162,7 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json({
                 "ok": True,
                 "service": "一键追爆视频工作台",
-                "version": "1.2.0",
+                "version": "1.2.1",
                 "voice_clone": engine_status(),
             })
             return
