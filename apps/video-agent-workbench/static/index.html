@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>一键追爆 · AI 视频工作台</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%2330f0dc'/%3E%3Ctext x='32' y='44' font-size='38' text-anchor='middle' fill='%2307080c'%3E%E8%BF%BD%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="grain"></div>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark">追</div>
+      <div>
+        <strong>一键追爆</strong>
+        <span>LOCAL AI VIDEO ENGINE</span>
+      </div>
+    </div>
+    <div class="health" id="health"><i></i>正在连接本地引擎</div>
+    <button class="ghost" id="openRuns">打开产物目录</button>
+  </header>
+
+  <main class="workspace">
+    <section class="column">
+      <article class="panel source-panel">
+        <div class="panel-head">
+          <span class="step">01</span>
+          <div><h2>素材与参考视频</h2><p>上传或粘贴本机绝对路径</p></div>
+        </div>
+        <label class="dropzone" for="videoFile">
+          <input id="videoFile" type="file" accept="video/*">
+          <span class="drop-icon">＋</span>
+          <strong>选择视频素材</strong>
+          <small id="uploadState">MP4 / MOV / M4V / MKV</small>
+        </label>
+        <label class="field">
+          <span>素材路径</span>
+          <input id="sourcePath" placeholder="/path/to/your/reference.mp4">
+        </label>
+        <video id="sourcePreview" controls playsinline></video>
+        <div class="row">
+          <button class="primary" id="analyzeBtn">AI 拆解与转写</button>
+          <span class="badge">Whisper tiny</span>
+        </div>
+      </article>
+
+      <article class="panel">
+        <div class="panel-head">
+          <span class="step">02</span>
+          <div><h2>自动剪辑</h2><p>识别静音并保留自然呼吸</p></div>
+        </div>
+        <div class="split">
+          <label class="field"><span>静音阈值</span><input id="threshold" type="number" value="-35"><em>dB</em></label>
+          <label class="field"><span>最短静音</span><input id="silence" type="number" step="0.05" value="0.65"><em>秒</em></label>
+        </div>
+        <div class="switch-row">
+          <label class="switch"><input id="autoCut" type="checkbox" checked><span></span>生成视频前自动剪辑</label>
+        </div>
+        <button class="outline" id="cutBtn">只运行自动剪辑</button>
+        <video id="cutPreview" controls playsinline></video>
+        <div class="subsection">
+          <div class="subhead"><strong>动效 Skill</strong><span>逐帧真实渲染</span></div>
+          <div class="motion-grid" id="motionGrid">
+            <label class="motion-card">
+              <input type="radio" name="motion" value="none">
+              <b>稳重原片</b><small>无镜头运动</small>
+            </label>
+            <label class="motion-card active">
+              <input type="radio" name="motion" value="smart_push" checked>
+              <b>智能轻推镜</b><small>持续聚焦人物</small>
+            </label>
+            <label class="motion-card">
+              <input type="radio" name="motion" value="breath_focus">
+              <b>呼吸聚焦</b><small>细微缩放往复</small>
+            </label>
+            <label class="motion-card">
+              <input type="radio" name="motion" value="beat_impact">
+              <b>节奏冲击</b><small>快速推近回弹</small>
+            </label>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <section class="column center-column">
+      <article class="panel">
+        <div class="panel-head">
+          <span class="step">03</span>
+          <div><h2>原创脚本与口播</h2><p>结果先行，不搬运原作者文案</p></div>
+        </div>
+        <label class="field">
+          <span>视频标题</span>
+          <input id="title" value="老板真正需要的，不是一个AI工具">
+        </label>
+        <label class="field">
+          <span>口播文案</span>
+          <textarea id="script" rows="10">很多老板买了十几个AI工具，最后还是没人真正用起来。问题不在工具，而在业务流程没有被重新设计。真正有价值的AI，不是多一个聊天框，而是把选题、内容、获客、跟进和复盘连成一条自动运转的生产线。先选一个最贵、最慢、最依赖老板经验的流程，把它做成智能体，企业才会真正看到结果。</textarea>
+        </label>
+        <div class="script-meta">
+          <span id="charCount">0 字</span>
+          <button class="text-btn" id="useTranscript">使用转写草稿</button>
+        </div>
+      </article>
+
+      <article class="panel">
+        <div class="panel-head">
+          <span class="step">04</span>
+          <div><h2>标题标签与关键词</h2><p>输出平台可编辑元数据</p></div>
+        </div>
+        <button class="mini-primary" id="tagBtn">生成标题标签关键词</button>
+        <label class="field"><span>生成的标签</span><textarea id="tags" rows="3">AI落地, 企业智能体, 老板思维, 业务流程, 内容获客</textarea></label>
+        <div class="chips" id="keywords">
+          <span>企业AI</span><span>流程重构</span><span>智能体</span><span>增长</span>
+        </div>
+      </article>
+
+      <article class="panel">
+        <div class="panel-head">
+          <span class="step">05</span>
+          <div><h2>AI 配音、声音克隆与字幕</h2><p>可上传本人声音，克隆后直接用于成片</p></div>
+        </div>
+        <div class="split">
+          <label class="field">
+            <span>声音</span>
+            <select id="voice">
+              <option value="" disabled>正在读取声音库…</option>
+              <option value="zh-CN-YunxiNeural">云希 · 沉稳男声</option>
+              <option value="zh-CN-XiaoxiaoNeural">晓晓 · 自然女声</option>
+              <option value="zh-CN-YunjianNeural">云健 · 专业男声</option>
+            </select>
+          </label>
+          <label class="field"><span>画幅</span><select><option>9:16 · 1080×1920</option></select></label>
+        </div>
+        <div class="switch-row">
+          <label class="switch"><input type="checkbox" checked disabled><span></span>自动生成字幕</label>
+          <label class="switch"><input type="checkbox" checked disabled><span></span>音量标准化</label>
+        </div>
+        <div class="voice-lab">
+          <div class="subhead"><strong>克隆我的声音</strong><span id="cloneEngine">正在检查引擎</span></div>
+          <label class="voice-drop" for="voiceFile">
+            <input id="voiceFile" type="file" accept="audio/mp3,audio/mp4,audio/wav,.mp3,.m4a,.wav">
+            <b>上传 10 秒～5 分钟清晰人声</b>
+            <small id="voiceUploadState">MP3 / M4A / WAV · 不超过 20 MB</small>
+          </label>
+          <label class="field"><span>音色名称</span><input id="voiceName" value="我的专属音色"></label>
+          <label class="consent"><input id="voiceConsent" type="checkbox"> 我确认这是本人声音，或已经获得声音所有者授权</label>
+          <button class="outline clone-button" id="cloneBtn" disabled>上传样本并克隆音色</button>
+          <audio id="voicePreview" controls></audio>
+          <p class="cost-note">点击克隆后会调用 MiniMax 云端服务，可能按账户规则产生费用。</p>
+        </div>
+        <div class="engine-note"><b>真实引擎</b> MiniMax Voice Clone · 颜汝 Moss · Edge Neural TTS · FFmpeg</div>
+      </article>
+    </section>
+
+    <section class="column">
+      <article class="panel launch-panel">
+        <div class="panel-head">
+          <span class="step">READY</span>
+          <div><h2>一键生成控制台</h2><p>每次任务都有真实目录和日志</p></div>
+        </div>
+        <button class="launch" id="generateBtn"><i></i>开启一键追爆</button>
+        <div class="progress-shell">
+          <div class="progress"><b id="progressBar"></b></div>
+          <div class="progress-copy"><span id="jobState">等待任务</span><strong id="progressText">0%</strong></div>
+        </div>
+        <pre class="log" id="log">系统已就绪。
+请选择素材，然后生成 AI 视频。</pre>
+      </article>
+
+      <article class="panel">
+        <div class="panel-head">
+          <span class="step">06</span>
+          <div><h2>封面制作</h2><p>从成片自动抽帧并生成标题封面</p></div>
+        </div>
+        <div class="cover-stage">
+          <img id="coverPreview" alt="等待生成封面">
+          <div class="empty-cover" id="coverEmpty"><span>AI</span><b>等待成片</b></div>
+        </div>
+      </article>
+
+      <article class="panel result-panel">
+        <div class="panel-head">
+          <span class="step">07</span>
+          <div><h2>成片与交付</h2><p>先验收，再生成发布包</p></div>
+        </div>
+        <video id="finalPreview" controls playsinline></video>
+        <div class="result-actions">
+          <a class="primary disabled" id="downloadVideo" download>下载 MP4</a>
+          <a class="outline disabled" id="downloadSrt" download>下载字幕</a>
+        </div>
+        <div class="facts" id="facts">
+          <span><b>—</b>时长</span><span><b>1080×1920</b>画幅</span><span><b>本地</b>隐私</span>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <script src="/app.js"></script>
+</body>
+</html>
