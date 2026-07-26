@@ -3,130 +3,17 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>一键追爆 · AI 视频智能体</title>
+  <title>一键追爆 · AI 视频工作台</title>
   <style>
-    :root {
-      --bg:#08090d; --panel:#13151c; --line:#2a2e38; --text:#f6f7fb;
-      --muted:#939aa8; --cyan:#30f0dc; --pink:#ff42cf; --blue:#6687ff;
-      font-family:"PingFang SC","Hiragino Sans GB",system-ui,sans-serif;
-    }
-    * { box-sizing:border-box }
-    body {
-      margin:0; color:var(--text);
-      background:
-        radial-gradient(circle at 72% 0,rgba(48,240,220,.12),transparent 28%),
-        radial-gradient(circle at 14% 36%,rgba(255,66,207,.09),transparent 25%),
-        var(--bg);
-    }
-    a { color:inherit }
-    .nav {
-      height:68px; display:flex; align-items:center; justify-content:space-between;
-      padding:0 5vw; border-bottom:1px solid var(--line); background:rgba(8,9,13,.9);
-      position:sticky; top:0; z-index:5; backdrop-filter:blur(16px);
-    }
-    .brand { display:flex; align-items:center; gap:11px; font-weight:900 }
-    .mark {
-      width:38px; height:38px; display:grid; place-items:center; color:#07100e;
-      background:var(--cyan); transform:rotate(-4deg); font-size:20px;
-    }
-    .back { color:var(--muted); text-decoration:none; font-size:13px }
-    main { width:min(1240px,92vw); margin:auto; padding:72px 0 80px }
-    .hero { display:grid; grid-template-columns:1.02fr .98fr; gap:42px; align-items:center }
-    .eyebrow { color:var(--cyan); font:800 12px/1.4 ui-monospace,monospace; letter-spacing:.18em }
-    h1 { margin:16px 0; font-size:clamp(42px,6vw,78px); line-height:1.04; letter-spacing:-.04em }
-    .lead { max-width:680px; color:#b7bdc8; font-size:18px; line-height:1.8 }
-    .actions { display:flex; flex-wrap:wrap; gap:12px; margin-top:30px }
-    .button {
-      padding:13px 18px; border-radius:8px; text-decoration:none; font-weight:800;
-      border:1px solid var(--line); background:#151821;
-    }
-    .button.primary { color:#09100f; border-color:var(--cyan); background:var(--cyan) }
-    .note { margin-top:18px; color:#747c89; font-size:12px; line-height:1.7 }
-    .console {
-      padding:14px; border:1px solid rgba(48,240,220,.26); border-radius:14px;
-      background:linear-gradient(145deg,#151821,#0d0f15); box-shadow:0 30px 80px rgba(0,0,0,.35);
-    }
-    .console-top { display:flex; justify-content:space-between; padding:4px 3px 14px; color:#89919f; font:11px ui-monospace,monospace }
-    .screen { display:grid; grid-template-columns:.9fr 1.1fr .9fr; gap:8px }
-    .column { display:grid; gap:8px }
-    .card { min-height:78px; padding:11px; border:1px solid var(--line); border-radius:8px; background:#11131a }
-    .card b { display:block; margin-bottom:8px; font-size:11px }
-    .line { height:7px; margin:6px 0; border-radius:6px; background:#272b35 }
-    .line.short { width:63% }
-    .voice { border-color:rgba(48,240,220,.35) }
-    .voice strong { color:var(--cyan); font-size:10px }
-    .motion-grid { display:grid; grid-template-columns:1fr 1fr; gap:5px }
-    .motion { padding:7px; border:1px solid #343944; border-radius:5px; color:#aab1bc; font-size:8px }
-    .motion.active { color:var(--cyan); border-color:var(--cyan) }
-    .launch { display:grid; place-items:center; min-height:92px; color:white; background:linear-gradient(135deg,#334b83,#7d327e,#16867b) }
-    .preview { min-height:180px; display:grid; place-items:center; background:#050609 }
-    .phone { width:78px; height:150px; border:1px solid #454a55; border-radius:8px; background:linear-gradient(160deg,#18304a,#12131a 48%,#5e214f) }
-    .features { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-top:72px }
-    .feature { padding:21px; border:1px solid var(--line); border-radius:10px; background:rgba(19,21,28,.82) }
-    .feature span { color:var(--cyan); font:800 11px ui-monospace,monospace }
-    .feature h2 { margin:13px 0 8px; font-size:17px }
-    .feature p { margin:0; color:var(--muted); font-size:13px; line-height:1.7 }
-    .boundary {
-      margin-top:34px; padding:20px 22px; border-left:3px solid var(--pink);
-      color:#aeb4bf; background:#101218; font-size:13px; line-height:1.8;
-    }
-    footer { margin-top:54px; color:#68717e; font-size:12px }
-    @media(max-width:900px) {
-      .hero { grid-template-columns:1fr }
-      .features { grid-template-columns:1fr 1fr }
-    }
-    @media(max-width:560px) {
-      main { padding-top:42px }
-      .features { grid-template-columns:1fr }
-      .screen { grid-template-columns:1fr }
-      .console .column:first-child,.console .column:last-child { display:none }
-    }
+    html,body,iframe { width:100%; height:100%; margin:0; border:0; background:#07080c; }
+    iframe { display:block; }
   </style>
 </head>
 <body>
-  <nav class="nav">
-    <div class="brand"><span class="mark">追</span><span>颜汝 AI 中控台</span></div>
-    <a class="back" href="../">返回中控台</a>
-  </nav>
-  <main>
-    <section class="hero">
-      <div>
-        <div class="eyebrow">VIRAL VIDEO AGENT · V1.2.0</div>
-        <h1>上传素材，克隆声音，自动剪出 AI 视频</h1>
-        <p class="lead">一套真实运行的本地视频工作台：Whisper 转写、静音剪辑、个人音色、字幕封面和四种逐帧动效，最后导出 1080×1920 MP4。</p>
-        <div class="actions">
-          <a class="button primary" href="downloads/viral-video-agent-workbench-v1.2.0.zip" download>下载可安装 ZIP</a>
-          <a class="button" href="https://github.com/yanruwill-dot/yanru-ai-control-center/tree/main/apps/video-agent-workbench">查看 GitHub 源码</a>
-        </div>
-        <p class="note">公开页面用于中台展示和下载。视频生成、声音克隆需要下载后在本机运行。</p>
-      </div>
-      <div class="console" aria-label="工作台界面示意">
-        <div class="console-top"><span>LOCAL AI VIDEO ENGINE</span><span>● READY</span></div>
-        <div class="screen">
-          <div class="column">
-            <div class="card"><b>01 素材与参考视频</b><div class="line"></div><div class="line short"></div></div>
-            <div class="card"><b>02 自动剪辑</b><div class="motion-grid"><span class="motion">稳重原片</span><span class="motion active">智能轻推镜</span><span class="motion">呼吸聚焦</span><span class="motion">节奏冲击</span></div></div>
-          </div>
-          <div class="column">
-            <div class="card"><b>03 原创脚本与口播</b><div class="line"></div><div class="line"></div><div class="line short"></div></div>
-            <div class="card voice"><b>05 AI 配音与声音克隆</b><strong>MiniMax 已连接 · Moss 已验证</strong><div class="line"></div></div>
-            <div class="card launch"><b>开启一键追爆</b></div>
-          </div>
-          <div class="column">
-            <div class="card preview"><div class="phone"></div></div>
-            <div class="card"><b>07 成片与交付</b><div class="line"></div><div class="line short"></div></div>
-          </div>
-        </div>
-      </div>
-    </section>
-    <section class="features">
-      <article class="feature"><span>VOICE</span><h2>上传并克隆声音</h2><p>校验 10 秒到 5 分钟音频，授权确认后调用 MiniMax 创建专属音色。</p></article>
-      <article class="feature"><span>MOTION</span><h2>四种动效 Skill</h2><p>稳重原片、智能轻推镜、呼吸聚焦和节奏冲击，逐帧进入最终成片。</p></article>
-      <article class="feature"><span>EDIT</span><h2>真实自动剪辑</h2><p>用 FFmpeg 检测静音、保留自然呼吸边缘，并自动生成字幕、封面和联系表。</p></article>
-      <article class="feature"><span>DELIVERY</span><h2>完整任务证据</h2><p>每个任务保留状态、日志、SRT、封面、项目 JSON 和可下载 MP4。</p></article>
-    </section>
-    <div class="boundary">隐私边界：GitHub 公开版不包含用户声音、参考视频、运行记录或 API Key。声音克隆只允许使用本人声音或已获得明确授权的声音。</div>
-    <footer>颜汝 AI 自动化中控台 · AI 视频智能体 v1.2.0</footer>
-  </main>
+  <iframe
+    src="../apps/video-agent-workbench/static/"
+    title="一键追爆 AI 视频工作台"
+    allow="autoplay"
+  ></iframe>
 </body>
 </html>

@@ -13,7 +13,7 @@
 ## AI 视频智能体源码
 
 - 工作台源码：`apps/video-agent-workbench/`
-- 可安装 ZIP：`video-agent-workbench/downloads/viral-video-agent-workbench-v1.2.0.zip`
+- 可安装 ZIP：`video-agent-workbench/downloads/viral-video-agent-workbench-v1.2.1.zip`
 - 公开仓库不包含用户声音、视频素材、任务日志或 API Key。
 
 ## 发布边界
