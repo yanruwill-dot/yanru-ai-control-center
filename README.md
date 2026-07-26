@@ -8,6 +8,13 @@
 - 行业热点内容中台：https://yanruwill-dot.github.io/yanru-ai-control-center/industry-hotspot-html-factory.html
 - 整体方案 HTML：https://yanruwill-dot.github.io/yanru-ai-control-center/industry-hotspot-solution.html
 - 整体方案流水线：https://yanruwill-dot.github.io/yanru-ai-control-center/outputs/html/strategy-plan.html
+- AI 视频智能体：https://yanruwill-dot.github.io/yanru-ai-control-center/video-agent-workbench/
+
+## AI 视频智能体源码
+
+- 工作台源码：`apps/video-agent-workbench/`
+- 可安装 ZIP：`video-agent-workbench/downloads/viral-video-agent-workbench-v1.2.0.zip`
+- 公开仓库不包含用户声音、视频素材、任务日志或 API Key。
 
 ## 发布边界
 
