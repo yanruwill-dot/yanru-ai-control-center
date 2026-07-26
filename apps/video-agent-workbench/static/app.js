@@ -1,4 +1,6 @@
 const $ = (selector) => document.querySelector(selector);
+const API_ORIGIN = location.hostname.endsWith("github.io") ? "http://127.0.0.1:8788" : "";
+const apiUrl = (path) => `${API_ORIGIN}${path}`;
 const state = {
   transcript: "",
   currentJob: null,
@@ -27,7 +29,7 @@ function setProgress(value, message) {
 }
 
 function runUrl(jobId, name) {
-  return `/runs/${encodeURIComponent(jobId)}/${encodeURIComponent(name)}`;
+  return apiUrl(`/runs/${encodeURIComponent(jobId)}/${encodeURIComponent(name)}`);
 }
 
 function showResult(job) {
@@ -50,7 +52,7 @@ function showResult(job) {
 
 async function health() {
   try {
-    const response = await fetch("/api/health");
+    const response = await fetch(apiUrl("/api/health"));
     const data = await response.json();
     if (!data.ok) throw new Error("服务未就绪");
     $("#health").classList.add("ok");
@@ -58,12 +60,12 @@ async function health() {
     const clone = data.voice_clone || {};
     $("#cloneEngine").textContent = clone.clone_enabled ? "MiniMax 已连接" : "克隆引擎未配置";
   } catch {
-    $("#health").innerHTML = "<i></i>本地视频引擎未连接";
+    $("#health").innerHTML = "<i></i>本地引擎未连接 · 仍可选择视频预览";
   }
 }
 
 async function loadVoices(selectId = "") {
-  const response = await fetch("/api/voices");
+  const response = await fetch(apiUrl("/api/voices"));
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || "声音库读取失败");
   const select = $("#voice");
@@ -88,7 +90,7 @@ async function loadVoices(selectId = "") {
 
 async function loadLatest() {
   try {
-    const response = await fetch("/api/latest");
+    const response = await fetch(apiUrl("/api/latest"));
     if (!response.ok) return;
     const job = await response.json();
     showResult(job);
@@ -98,7 +100,7 @@ async function loadLatest() {
 
 async function upload(file) {
   $("#uploadState").textContent = `上传中 0% · ${file.name}`;
-  const response = await fetch(`/api/upload?name=${encodeURIComponent(file.name)}`, {
+  const response = await fetch(apiUrl(`/api/upload?name=${encodeURIComponent(file.name)}`), {
     method: "POST",
     headers: { "Content-Type": "application/octet-stream" },
     body: file
@@ -117,7 +119,7 @@ async function upload(file) {
 
 async function uploadVoice(file) {
   $("#voiceUploadState").textContent = `正在检查 · ${file.name}`;
-  const response = await fetch(`/api/upload-audio?name=${encodeURIComponent(file.name)}`, {
+  const response = await fetch(apiUrl(`/api/upload-audio?name=${encodeURIComponent(file.name)}`), {
     method: "POST",
     headers: { "Content-Type": "application/octet-stream" },
     body: file
@@ -133,7 +135,7 @@ async function uploadVoice(file) {
 async function submit(kind, payload) {
   setProgress(2, "正在创建任务");
   note(`提交 ${kind} 任务`);
-  const response = await fetch(`/api/${kind}`, {
+  const response = await fetch(apiUrl(`/api/${kind}`), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload)
@@ -146,7 +148,7 @@ async function submit(kind, payload) {
 
 async function poll(jobId) {
   for (;;) {
-    const response = await fetch(`/api/jobs/${encodeURIComponent(jobId)}`);
+    const response = await fetch(apiUrl(`/api/jobs/${encodeURIComponent(jobId)}`));
     const job = await response.json();
     setProgress(job.progress, job.message);
     if (job.message && job.message !== state.lastMessage) {
@@ -211,7 +213,7 @@ $("#cloneBtn").addEventListener("click", async () => {
     await loadVoices(job.result.id);
     const preview = $("#voicePreview");
     const voiceId = job.result.voice_id;
-    preview.src = `/voices/${encodeURIComponent(voiceId)}/preview.mp3`;
+    preview.src = apiUrl(`/voices/${encodeURIComponent(voiceId)}/preview.mp3`);
     preview.classList.add("ready");
     note(`声音克隆完成：${job.result.name}`);
   } catch (error) {
@@ -298,6 +300,10 @@ $("#script").addEventListener("input", () => {
 $("#script").dispatchEvent(new Event("input"));
 
 $("#openRuns").addEventListener("click", () => {
+  if (API_ORIGIN) {
+    location.href = "../../../video-agent-workbench/downloads/viral-video-agent-workbench-v1.2.1.zip";
+    return;
+  }
   note("产物目录：outputs/video-agent-workbench-v1/runs");
 });
 
