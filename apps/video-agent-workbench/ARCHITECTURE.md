@@ -1,5 +1,21 @@
 # 系统架构
 
+## 在线连接
+
+```text
+GitHub Pages 工作台（HTTPS）
+        │  X-Video-Agent-Key
+        ▼
+Cloudflare Tunnel / 云端反向代理（HTTPS）
+        │
+        ▼
+Python API + FFmpeg + Edge TTS
+        │
+        └── runs / uploads / voices
+```
+
+`start-online.command` 负责引擎、随机密钥和 Quick Tunnel 的生命周期。Dockerfile 提供永久云服务器的同构运行环境。
+
 ```text
 浏览器三栏工作台
        │ JSON / 原始视频流

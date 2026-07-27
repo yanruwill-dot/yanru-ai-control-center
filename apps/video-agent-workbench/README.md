@@ -1,6 +1,6 @@
 # 一键追爆 AI 视频工作台
 
-这是一个真正在本机运行的视频生产工作台，不是静态展示页。
+这是一个可通过 HTTPS 在线连接的视频生产工作台，不是静态展示页。
 
 ## 能做什么
 
@@ -15,7 +15,18 @@
 - 按配音时长生成字幕、标题层、1080×1920 竖屏 MP4、封面和联系表。
 - 每个任务保留 `status.json`、`pipeline.log`、字幕、封面、成片和项目 JSON。
 
-## 启动
+## 一键在线启动（推荐）
+
+双击 `start-online.command`。启动器会自动：
+
+1. 在后台启动 Python 与 FFmpeg 生成引擎。
+2. 生成本次专用的随机访问密钥。
+3. 建立 Cloudflare HTTPS 隧道。
+4. 打开已经连接到引擎的 GitHub 在线工作台。
+
+停止时双击 `stop-online.command`。在线模式不要求 Cloudflare 登录，但这台 Mac 必须保持开机。
+
+## 仅本机启动
 
 双击 `start.command`，或在终端运行：
 
@@ -26,11 +37,33 @@ python3 app.py --host 127.0.0.1 --port 8788
 
 打开 `http://127.0.0.1:8788`。
 
+## Docker 云服务器
+
+容器内已包含 FFmpeg、中文字体和 Edge TTS：
+
+```bash
+docker build -t yanru-video-agent .
+docker run --rm -p 8788:8788 \
+  -e VIDEO_AGENT_API_KEY="请换成随机长密钥" \
+  -e VIDEO_AGENT_ALLOWED_ORIGINS="https://yanruwill-dot.github.io" \
+  yanru-video-agent
+```
+
+云服务器必须由 HTTPS 反向代理提供域名。打开工作台时通过 URL fragment 传入：
+
+```text
+https://yanruwill-dot.github.io/yanru-ai-control-center/video-agent-workbench/#api=https://你的后端域名&key=你的访问密钥
+```
+
+fragment 不会发送给 GitHub Pages，只由浏览器用于连接视频引擎。
+
 ## 真实边界
 
 - 声音克隆优先调用 `~/.codex/bin/minimax-voice-clone`；新机器需要配置自己的 MiniMax API Key。
 - 克隆声音必须属于本人或已获授权。点击克隆会调用云端服务，可能产生费用；只上传到本机并未创建音色。
 - 剪辑模板基于 GitHub 公开实现提炼，代码证据见 `EDITING_STYLE_RESEARCH.md`；不包含商业软件的私有模板或素材。
+- Quick Tunnel 的地址每次启动都会变化，适合个人使用和演示，不承诺云服务 SLA；永久在线需把同一 Docker 镜像部署到自己的容器服务器。
+- HTTPS 模式使用随机访问密钥保护上传、生成、声音和产物接口；不要把带 `#key=` 的完整链接公开转发。
 - 已有“颜汝 Moss”音色通过 AuraStd 兼容 TTS 生成；新克隆音色通过 MiniMax 官方 TTS 使用。
 - “AI”能力还包括 Whisper 语音识别和 Edge Neural TTS；脚本文案允许人工编辑，避免模型胡编业务事实。
 - 自动剪辑目前基于音频静音，不会擅自删除语义内容。
