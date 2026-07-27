@@ -2,8 +2,10 @@
 from __future__ import annotations
 
 import argparse
+import hmac
 import json
 import mimetypes
+import os
 import re
 import threading
 import time
@@ -29,6 +31,12 @@ VOICES.mkdir(exist_ok=True)
 JOBS: dict[str, dict] = {}
 LOCK = threading.Lock()
 GITHUB_PAGES_ORIGIN = "https://yanruwill-dot.github.io"
+API_KEY = os.environ.get("VIDEO_AGENT_API_KEY", "").strip()
+ALLOWED_ORIGINS = {
+    item.strip()
+    for item in os.environ.get("VIDEO_AGENT_ALLOWED_ORIGINS", GITHUB_PAGES_ORIGIN).split(",")
+    if item.strip()
+}
 
 
 def save_job(job_id: str) -> None:
@@ -113,12 +121,27 @@ class Handler(BaseHTTPRequestHandler):
     server_version = "ViralVideoWorkbench/1.0"
 
     def send_cors_headers(self) -> None:
-        if self.headers.get("Origin") == GITHUB_PAGES_ORIGIN:
-            self.send_header("Access-Control-Allow-Origin", GITHUB_PAGES_ORIGIN)
+        origin = self.headers.get("Origin", "")
+        if origin in ALLOWED_ORIGINS:
+            self.send_header("Access-Control-Allow-Origin", origin)
             self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-            self.send_header("Access-Control-Allow-Headers", "Content-Type")
+            self.send_header("Access-Control-Allow-Headers", "Content-Type, X-Video-Agent-Key")
             self.send_header("Access-Control-Allow-Private-Network", "true")
             self.send_header("Vary", "Origin")
+
+    def is_authorized(self) -> bool:
+        if not API_KEY:
+            return True
+        supplied = self.headers.get("X-Video-Agent-Key", "")
+        if not supplied:
+            supplied = parse_qs(urlparse(self.path).query).get("key", [""])[0]
+        return hmac.compare_digest(supplied, API_KEY)
+
+    def require_authorized(self) -> bool:
+        if self.is_authorized():
+            return True
+        self.send_json({"ok": False, "error": "引擎访问密钥无效，请重新运行桌面启动器"}, 401)
+        return False
 
     def send_json(self, value: dict, status: int = 200) -> None:
         body = json.dumps(value, ensure_ascii=False).encode("utf-8")
@@ -159,11 +182,13 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self) -> None:
         parsed = urlparse(self.path)
         path = unquote(parsed.path)
+        if path.startswith(("/api/", "/runs/", "/voices/")) and not self.require_authorized():
+            return
         if path == "/api/health":
             self.send_json({
                 "ok": True,
                 "service": "一键追爆视频工作台",
-                "version": "1.3.0",
+                "version": "1.4.0",
                 "voice_clone": engine_status(),
             })
             return
@@ -223,6 +248,8 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self) -> None:
         parsed = urlparse(self.path)
         try:
+            if parsed.path.startswith("/api/") and not self.require_authorized():
+                return
             if parsed.path == "/api/upload":
                 query = parse_qs(parsed.query)
                 original = Path(query.get("name", ["video.mp4"])[0]).name

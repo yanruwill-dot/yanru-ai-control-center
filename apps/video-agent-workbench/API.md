@@ -1,5 +1,24 @@
 # API
 
+## 鉴权
+
+设置 `VIDEO_AGENT_API_KEY` 后，所有 `/api/`、`/runs/`、`/voices/` 请求都需要携带密钥。
+
+- `fetch` 请求：`X-Video-Agent-Key: <key>`
+- 视频、图片和音频元素：查询参数 `?key=<key>`
+
+未设置环境变量时保持原有本机兼容模式。
+
+## 跨域
+
+`VIDEO_AGENT_ALLOWED_ORIGINS` 是逗号分隔的 HTTPS 前端来源，默认只允许：
+
+```text
+https://yanruwill-dot.github.io
+```
+
+预检允许 `Content-Type` 与 `X-Video-Agent-Key`。
+
 | 方法 | 路径 | 作用 |
 |---|---|---|
 | GET | `/api/health` | 引擎健康检查 |

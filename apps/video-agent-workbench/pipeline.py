@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import math
+import os
 import re
 import shutil
 import subprocess
@@ -12,7 +13,13 @@ from PIL import Image, ImageDraw, ImageEnhance, ImageFilter, ImageFont, ImageOps
 from voice_clone import VoiceCloneError, synthesize_minimax
 
 
-FONT = Path("/System/Library/Fonts/Hiragino Sans GB.ttc")
+FONT_CANDIDATES = [
+    Path(os.environ.get("VIDEO_AGENT_FONT", "")),
+    Path("/System/Library/Fonts/Hiragino Sans GB.ttc"),
+    Path("/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc"),
+    Path("/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc"),
+]
+FONT = next((path for path in FONT_CANDIDATES if str(path) and path.is_file()), FONT_CANDIDATES[1])
 VIDEO_SUFFIXES = {".mp4", ".mov", ".m4v", ".avi", ".mkv", ".webm"}
 
 
@@ -64,7 +71,10 @@ def has_audio(path: Path) -> bool:
 
 
 def font(size: int, bold: bool = False) -> ImageFont.FreeTypeFont:
-    return ImageFont.truetype(str(FONT), size=size, index=1 if bold else 0)
+    try:
+        return ImageFont.truetype(str(FONT), size=size, index=1 if bold else 0)
+    except OSError:
+        return ImageFont.truetype(str(FONT), size=size)
 
 
 def split_script(text: str, max_chars: int = 18) -> list[str]:

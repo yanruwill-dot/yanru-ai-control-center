@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.4.0 — 2026-07-27
+
+- 新增一键 HTTPS 在线启动与停止脚本。
+- 新增随机访问密钥和严格的 GitHub Pages CORS。
+- GitHub 页面从 URL fragment 读取 HTTPS 引擎地址，不再默认请求失效的 localhost。
+- 新增 Docker、Linux 中文字体和云服务器运行配置。
+- 修正“系统已就绪”的误导性静态日志。
+
 ## 1.3.0 — 2026-07-27
 
 - 研究 GitHub 上 Remotion TikTok Template、Short Video Maker、Auto-Editor 和 MoneyPrinterTurbo 的公开剪辑实现。
