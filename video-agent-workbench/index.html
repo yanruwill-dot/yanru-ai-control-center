@@ -11,9 +11,18 @@
 </head>
 <body>
   <iframe
+    id="workbench"
     src="../apps/video-agent-workbench/static/"
     title="一键追爆 AI 视频工作台"
     allow="autoplay"
   ></iframe>
+  <script>
+    const frame = document.getElementById("workbench");
+    const syncConnection = () => {
+      frame.src = `../apps/video-agent-workbench/static/${location.hash}`;
+    };
+    syncConnection();
+    addEventListener("hashchange", syncConnection);
+  </script>
 </body>
 </html>
