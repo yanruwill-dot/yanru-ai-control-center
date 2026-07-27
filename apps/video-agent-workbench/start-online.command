@@ -10,6 +10,7 @@ ENGINE_PID_FILE="${STATE_DIR}/engine.pid"
 TUNNEL_PID_FILE="${STATE_DIR}/tunnel.pid"
 URL_FILE="${STATE_DIR}/online-url.txt"
 PUBLIC_UI="https://yanruwill-dot.github.io/yanru-ai-control-center/video-agent-workbench/"
+ONLINE_PORT="${VIDEO_AGENT_ONLINE_PORT:-8789}"
 
 mkdir -p "$STATE_DIR"
 
@@ -48,25 +49,25 @@ API_KEY="$(openssl rand -hex 24)"
 : > "$ENGINE_LOG"
 : > "$TUNNEL_LOG"
 
-nohup env VIDEO_AGENT_API_KEY="$API_KEY" python3 app.py --host 127.0.0.1 --port 8788 \
+nohup env VIDEO_AGENT_API_KEY="$API_KEY" python3 app.py --host 127.0.0.1 --port "$ONLINE_PORT" \
   >"$ENGINE_LOG" 2>&1 &
 ENGINE_PID=$!
 echo "$ENGINE_PID" > "$ENGINE_PID_FILE"
 
 for _ in {1..30}; do
   if curl -fsS -H "X-Video-Agent-Key: ${API_KEY}" \
-    "http://127.0.0.1:8788/api/health" >/dev/null 2>&1; then
+    "http://127.0.0.1:${ONLINE_PORT}/api/health" >/dev/null 2>&1; then
     break
   fi
   sleep 0.25
 done
 if ! curl -fsS -H "X-Video-Agent-Key: ${API_KEY}" \
-  "http://127.0.0.1:8788/api/health" >/dev/null 2>&1; then
+  "http://127.0.0.1:${ONLINE_PORT}/api/health" >/dev/null 2>&1; then
   echo "本地视频引擎启动失败，日志：${ENGINE_LOG}"
   exit 1
 fi
 
-nohup cloudflared tunnel --no-autoupdate --url http://127.0.0.1:8788 \
+nohup cloudflared tunnel --no-autoupdate --url "http://127.0.0.1:${ONLINE_PORT}" \
   >"$TUNNEL_LOG" 2>&1 &
 TUNNEL_PID=$!
 echo "$TUNNEL_PID" > "$TUNNEL_PID_FILE"

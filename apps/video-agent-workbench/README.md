@@ -15,7 +15,18 @@
 - 按配音时长生成字幕、标题层、1080×1920 竖屏 MP4、封面和联系表。
 - 每个任务保留 `status.json`、`pipeline.log`、字幕、封面、成片和项目 JSON。
 
-## 一键在线启动（推荐）
+## 长期连接（推荐）
+
+双击 `install-persistent.command`，或直接打开桌面的 `AI视频工作台.app`。系统会安装一个当前用户的 macOS LaunchAgent：
+
+- 登录后自动启动。
+- 进程异常退出后自动重启。
+- 固定使用 `http://127.0.0.1:8788/`。
+- GitHub 工作台没有 HTTPS 参数时也会自动回连这个长期引擎。
+
+停止并移除登录项时双击 `uninstall-persistent.command`。已生成的视频和声音资料不会被删除。
+
+## 临时 HTTPS 外网启动
 
 双击 `start-online.command`。启动器会自动：
 
@@ -24,7 +35,7 @@
 3. 建立 Cloudflare HTTPS 隧道。
 4. 打开已经连接到引擎的 GitHub 在线工作台。
 
-停止时双击 `stop-online.command`。在线模式不要求 Cloudflare 登录，但这台 Mac 必须保持开机。
+停止时双击 `stop-online.command`。在线模式使用独立的 8789 端口，不会与长期 8788 引擎冲突。它不要求 Cloudflare 登录，但这台 Mac 必须保持开机。
 
 ## 仅本机启动
 

@@ -16,6 +16,8 @@ Python API + FFmpeg + Edge TTS
 
 `start-online.command` 负责引擎、随机密钥和 Quick Tunnel 的生命周期。Dockerfile 提供永久云服务器的同构运行环境。
 
+本机长期模式由 `com.yanru.video-agent` LaunchAgent 管理，登录自动启动并通过 `KeepAlive` 自动恢复，固定监听 `127.0.0.1:8788`。临时 HTTPS 模式改用 8789，避免端口冲突。
+
 ```text
 浏览器三栏工作台
        │ JSON / 原始视频流
