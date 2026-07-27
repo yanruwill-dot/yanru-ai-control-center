@@ -1,15 +1,15 @@
 const $ = (selector) => document.querySelector(selector);
 const connection = new URLSearchParams(location.hash.replace(/^#/, ""));
 const requestedOrigin = connection.get("api") || "";
+const LOCAL_ENGINE_ORIGIN = "http://127.0.0.1:8788";
 const API_ORIGIN = /^https:\/\/[A-Za-z0-9.-]+(?::\d+)?$/.test(requestedOrigin)
   ? requestedOrigin.replace(/\/$/, "")
-  : "";
+  : location.hostname.endsWith("github.io")
+    ? LOCAL_ENGINE_ORIGIN
+    : "";
 const API_KEY = connection.get("key") || "";
 const apiUrl = (path) => `${API_ORIGIN}${path}`;
 const apiFetch = (path, options = {}) => {
-  if (location.hostname.endsWith("github.io") && !API_ORIGIN) {
-    throw new Error("请先运行桌面启动器连接生成引擎");
-  }
   const headers = new Headers(options.headers || {});
   if (API_KEY) headers.set("X-Video-Agent-Key", API_KEY);
   return fetch(apiUrl(path), { ...options, headers });
@@ -71,13 +71,13 @@ async function health() {
     const data = await response.json();
     if (!data.ok) throw new Error("服务未就绪");
     $("#health").classList.add("ok");
-    $("#health").innerHTML = API_ORIGIN
+    $("#health").innerHTML = requestedOrigin
       ? "<i></i>HTTPS 视频与声音引擎已就绪"
-      : "<i></i>本地视频与声音引擎已就绪";
+      : "<i></i>长期生成引擎已连接";
     const clone = data.voice_clone || {};
     $("#cloneEngine").textContent = clone.clone_enabled ? "MiniMax 已连接" : "克隆引擎未配置";
   } catch {
-    $("#health").innerHTML = "<i></i>生成引擎未连接 · 请运行桌面启动器";
+    $("#health").innerHTML = "<i></i>长期生成引擎正在恢复 · 请稍后重试";
   }
 }
 
