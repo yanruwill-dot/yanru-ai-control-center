@@ -1,6 +1,19 @@
 const $ = (selector) => document.querySelector(selector);
-const API_ORIGIN = location.hostname.endsWith("github.io") ? "http://127.0.0.1:8788" : "";
+const connection = new URLSearchParams(location.hash.replace(/^#/, ""));
+const requestedOrigin = connection.get("api") || "";
+const API_ORIGIN = /^https:\/\/[A-Za-z0-9.-]+(?::\d+)?$/.test(requestedOrigin)
+  ? requestedOrigin.replace(/\/$/, "")
+  : "";
+const API_KEY = connection.get("key") || "";
 const apiUrl = (path) => `${API_ORIGIN}${path}`;
+const apiFetch = (path, options = {}) => {
+  if (location.hostname.endsWith("github.io") && !API_ORIGIN) {
+    throw new Error("请先运行桌面启动器连接生成引擎");
+  }
+  const headers = new Headers(options.headers || {});
+  if (API_KEY) headers.set("X-Video-Agent-Key", API_KEY);
+  return fetch(apiUrl(path), { ...options, headers });
+};
 const state = {
   transcript: "",
   currentJob: null,
@@ -29,7 +42,9 @@ function setProgress(value, message) {
 }
 
 function runUrl(jobId, name) {
-  return apiUrl(`/runs/${encodeURIComponent(jobId)}/${encodeURIComponent(name)}`);
+  const path = `/runs/${encodeURIComponent(jobId)}/${encodeURIComponent(name)}`;
+  const query = API_KEY ? `?key=${encodeURIComponent(API_KEY)}` : "";
+  return apiUrl(`${path}${query}`);
 }
 
 function showResult(job) {
@@ -52,20 +67,22 @@ function showResult(job) {
 
 async function health() {
   try {
-    const response = await fetch(apiUrl("/api/health"));
+    const response = await apiFetch("/api/health");
     const data = await response.json();
     if (!data.ok) throw new Error("服务未就绪");
     $("#health").classList.add("ok");
-    $("#health").innerHTML = "<i></i>视频与声音引擎已就绪";
+    $("#health").innerHTML = API_ORIGIN
+      ? "<i></i>HTTPS 视频与声音引擎已就绪"
+      : "<i></i>本地视频与声音引擎已就绪";
     const clone = data.voice_clone || {};
     $("#cloneEngine").textContent = clone.clone_enabled ? "MiniMax 已连接" : "克隆引擎未配置";
   } catch {
-    $("#health").innerHTML = "<i></i>本地引擎未连接 · 仍可选择视频预览";
+    $("#health").innerHTML = "<i></i>生成引擎未连接 · 请运行桌面启动器";
   }
 }
 
 async function loadVoices(selectId = "") {
-  const response = await fetch(apiUrl("/api/voices"));
+  const response = await apiFetch("/api/voices");
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || "声音库读取失败");
   const select = $("#voice");
@@ -90,7 +107,7 @@ async function loadVoices(selectId = "") {
 
 async function loadLatest() {
   try {
-    const response = await fetch(apiUrl("/api/latest"));
+    const response = await apiFetch("/api/latest");
     if (!response.ok) return;
     const job = await response.json();
     showResult(job);
@@ -100,7 +117,7 @@ async function loadLatest() {
 
 async function upload(file) {
   $("#uploadState").textContent = `上传中 0% · ${file.name}`;
-  const response = await fetch(apiUrl(`/api/upload?name=${encodeURIComponent(file.name)}`), {
+  const response = await apiFetch(`/api/upload?name=${encodeURIComponent(file.name)}`, {
     method: "POST",
     headers: { "Content-Type": "application/octet-stream" },
     body: file
@@ -119,7 +136,7 @@ async function upload(file) {
 
 async function uploadVoice(file) {
   $("#voiceUploadState").textContent = `正在检查 · ${file.name}`;
-  const response = await fetch(apiUrl(`/api/upload-audio?name=${encodeURIComponent(file.name)}`), {
+  const response = await apiFetch(`/api/upload-audio?name=${encodeURIComponent(file.name)}`, {
     method: "POST",
     headers: { "Content-Type": "application/octet-stream" },
     body: file
@@ -135,7 +152,7 @@ async function uploadVoice(file) {
 async function submit(kind, payload) {
   setProgress(2, "正在创建任务");
   note(`提交 ${kind} 任务`);
-  const response = await fetch(apiUrl(`/api/${kind}`), {
+  const response = await apiFetch(`/api/${kind}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload)
@@ -148,7 +165,7 @@ async function submit(kind, payload) {
 
 async function poll(jobId) {
   for (;;) {
-    const response = await fetch(apiUrl(`/api/jobs/${encodeURIComponent(jobId)}`));
+    const response = await apiFetch(`/api/jobs/${encodeURIComponent(jobId)}`);
     const job = await response.json();
     setProgress(job.progress, job.message);
     if (job.message && job.message !== state.lastMessage) {
@@ -214,7 +231,8 @@ $("#cloneBtn").addEventListener("click", async () => {
     await loadVoices(job.result.id);
     const preview = $("#voicePreview");
     const voiceId = job.result.voice_id;
-    preview.src = apiUrl(`/voices/${encodeURIComponent(voiceId)}/preview.mp3`);
+    const voiceQuery = API_KEY ? `?key=${encodeURIComponent(API_KEY)}` : "";
+    preview.src = apiUrl(`/voices/${encodeURIComponent(voiceId)}/preview.mp3${voiceQuery}`);
     preview.classList.add("ready");
     note(`声音克隆完成：${job.result.name}`);
   } catch (error) {
