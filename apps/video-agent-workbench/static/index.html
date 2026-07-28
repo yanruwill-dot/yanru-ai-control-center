@@ -8,13 +8,12 @@
   <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
-  <div class="grain"></div>
   <header class="topbar">
     <div class="brand">
       <div class="brand-mark">追</div>
       <div>
         <strong>一键追爆</strong>
-        <span>LOCAL AI VIDEO ENGINE</span>
+        <span>AI VIDEO STUDIO</span>
       </div>
     </div>
     <div class="health" id="health"><i></i>正在连接本地引擎</div>
@@ -60,48 +59,39 @@
         <button class="outline" id="cutBtn">只运行自动剪辑</button>
         <video id="cutPreview" controls playsinline></video>
         <div class="subsection">
-          <div class="subhead"><strong>剪辑模板</strong><span>GitHub 公开手法提炼</span></div>
-          <div class="motion-grid" id="editStyleGrid">
-            <label class="motion-card">
+          <div class="subhead"><strong>高级剪辑模板</strong><span>镜头动效已自动匹配</span></div>
+          <div class="template-library" id="editStyleGrid">
+            <label class="template-card">
               <input type="radio" name="editStyle" value="classic">
-              <b>经典口播</b><small>稳重底栏字幕</small>
+              <span class="template-kind">基础</span><b>清晰口播</b><small>克制底栏 · 正式讲解</small>
             </label>
-            <label class="motion-card active">
+            <label class="template-card active">
               <input type="radio" name="editStyle" value="jianying_big" checked>
-              <b>剪映感·大字弹跳</b><small>大字描边＋重点黄字</small>
+              <span class="template-kind">剪映经典</span><b>大字弹跳</b><small>重点黄字 · 弹性入场</small>
             </label>
-            <label class="motion-card">
-              <input type="radio" name="editStyle" value="kaipai_talk">
-              <b>开拍感·口播重点</b><small>短句色块＋轻推入场</small>
+            <label class="template-card">
+              <input type="radio" name="editStyle" value="jianying_clean">
+              <span class="template-kind">剪映经典</span><b>清透标题</b><small>玻璃字幕 · 轻推镜头</small>
             </label>
-            <label class="motion-card">
+            <label class="template-card">
               <input type="radio" name="editStyle" value="keyword_punch">
-              <b>卡点快切·冲击字幕</b><small>一屏一重点＋变焦</small>
+              <span class="template-kind">剪映经典</span><b>卡点快切</b><small>冲击字幕 · 节奏变焦</small>
             </label>
-            <label class="motion-card">
+            <label class="template-card">
+              <input type="radio" name="editStyle" value="kaipai_talk">
+              <span class="template-kind">开拍口播</span><b>口播重点</b><small>短句色块 · 智能轻推</small>
+            </label>
+            <label class="template-card">
+              <input type="radio" name="editStyle" value="kaipai_boss">
+              <span class="template-kind">开拍口播</span><b>老板观点</b><small>观点大字 · 稳定聚焦</small>
+            </label>
+            <label class="template-card">
+              <input type="radio" name="editStyle" value="kaipai_story">
+              <span class="template-kind">开拍口播</span><b>故事叙述</b><small>电影字幕 · 呼吸推镜</small>
+            </label>
+            <label class="template-card">
               <input type="radio" name="editStyle" value="knowledge_highlight">
-              <b>知识口播·关键词高亮</b><small>高信息密度字幕</small>
-            </label>
-          </div>
-        </div>
-        <div class="subsection">
-          <div class="subhead"><strong>动效 Skill</strong><span>逐帧真实渲染</span></div>
-          <div class="motion-grid" id="motionGrid">
-            <label class="motion-card">
-              <input type="radio" name="motion" value="none">
-              <b>稳重原片</b><small>无镜头运动</small>
-            </label>
-            <label class="motion-card active">
-              <input type="radio" name="motion" value="smart_push" checked>
-              <b>智能轻推镜</b><small>持续聚焦人物</small>
-            </label>
-            <label class="motion-card">
-              <input type="radio" name="motion" value="breath_focus">
-              <b>呼吸聚焦</b><small>细微缩放往复</small>
-            </label>
-            <label class="motion-card">
-              <input type="radio" name="motion" value="beat_impact">
-              <b>节奏冲击</b><small>快速推近回弹</small>
+              <span class="template-kind">知识表达</span><b>关键词高亮</b><small>高信息密度 · 自动强调</small>
             </label>
           </div>
         </div>

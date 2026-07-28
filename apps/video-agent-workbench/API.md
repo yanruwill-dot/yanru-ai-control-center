@@ -63,4 +63,4 @@ https://yanruwill-dot.github.io
 
 动效可选值：`none`、`smart_push`、`breath_focus`、`beat_impact`。
 
-剪辑模板可选值：`classic`、`jianying_big`、`kaipai_talk`、`keyword_punch`、`knowledge_highlight`。
+剪辑模板可选值：`classic`、`jianying_big`、`jianying_clean`、`keyword_punch`、`kaipai_talk`、`kaipai_boss`、`kaipai_story`、`knowledge_highlight`。
