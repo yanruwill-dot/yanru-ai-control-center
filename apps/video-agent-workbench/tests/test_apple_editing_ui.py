@@ -28,7 +28,18 @@ class AppleEditingUITests(unittest.TestCase):
         script = (ROOT / "static" / "app.js").read_text(encoding="utf-8")
         self.assertIn("MOTION_BY_STYLE", script)
         self.assertNotIn('input[name="motion"]', script)
-        self.assertIn("viral-video-agent-workbench-v1.5.0.zip", script)
+        self.assertIn("viral-video-agent-workbench-v1.5.1.zip", script)
+
+    def test_layout_does_not_force_desktop_width(self):
+        css = (ROOT / "static" / "styles.css").read_text(encoding="utf-8")
+        self.assertNotIn("min-width: 1180px", css)
+        self.assertIn(".column:last-child .launch-panel", css)
+        self.assertNotIn(".column:last-child { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, 1fr); }", css)
+
+    def test_static_assets_are_cache_busted(self):
+        html = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
+        self.assertIn("./styles.css?v=1.5.1", html)
+        self.assertIn("./app.js?v=1.5.1", html)
 
 
 if __name__ == "__main__":
