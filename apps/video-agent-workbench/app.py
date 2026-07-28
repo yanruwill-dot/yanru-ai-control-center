@@ -188,7 +188,7 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json({
                 "ok": True,
                 "service": "一键追爆视频工作台",
-                "version": "1.5.0",
+                "version": "1.5.1",
                 "voice_clone": engine_status(),
             })
             return
