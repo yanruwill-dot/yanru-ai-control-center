@@ -336,7 +336,7 @@ $("#script").dispatchEvent(new Event("input"));
 
 $("#openRuns").addEventListener("click", () => {
   if (API_ORIGIN) {
-    location.href = "../../../video-agent-workbench/downloads/viral-video-agent-workbench-v1.3.0.zip";
+    location.href = "../../../video-agent-workbench/downloads/viral-video-agent-workbench-v1.5.0.zip";
     return;
   }
   note("产物目录：outputs/video-agent-workbench-v1/runs");

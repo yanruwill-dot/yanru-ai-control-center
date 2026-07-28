@@ -28,6 +28,7 @@ class AppleEditingUITests(unittest.TestCase):
         script = (ROOT / "static" / "app.js").read_text(encoding="utf-8")
         self.assertIn("MOTION_BY_STYLE", script)
         self.assertNotIn('input[name="motion"]', script)
+        self.assertIn("viral-video-agent-workbench-v1.5.0.zip", script)
 
 
 if __name__ == "__main__":
