@@ -14,6 +14,16 @@ const apiFetch = (path, options = {}) => {
   if (API_KEY) headers.set("X-Video-Agent-Key", API_KEY);
   return fetch(apiUrl(path), { ...options, headers });
 };
+const MOTION_BY_STYLE = {
+  classic: "none",
+  jianying_big: "beat_impact",
+  jianying_clean: "smart_push",
+  keyword_punch: "beat_impact",
+  kaipai_talk: "smart_push",
+  kaipai_boss: "smart_push",
+  kaipai_story: "breath_focus",
+  knowledge_highlight: "none"
+};
 const state = {
   transcript: "",
   currentJob: null,
@@ -179,13 +189,14 @@ async function poll(jobId) {
 }
 
 function payload() {
+  const editingStyle = document.querySelector('input[name="editStyle"]:checked')?.value || "jianying_big";
   return {
     source_path: sourcePath.value.trim(),
     title: $("#title").value.trim(),
     script: $("#script").value.trim(),
     voice: $("#voice").value,
-    motion_preset: document.querySelector('input[name="motion"]:checked')?.value || "smart_push",
-    editing_style: document.querySelector('input[name="editStyle"]:checked')?.value || "jianying_big",
+    motion_preset: MOTION_BY_STYLE[editingStyle] || "smart_push",
+    editing_style: editingStyle,
     auto_cut: $("#autoCut").checked,
     threshold_db: Number($("#threshold").value),
     min_silence: Number($("#silence").value)
@@ -246,16 +257,15 @@ $("#cloneBtn").addEventListener("click", async () => {
 function bindCardGroup(name, prefix) {
   document.querySelectorAll(`input[name="${name}"]`).forEach(input => {
     input.addEventListener("change", () => {
-      const grid = input.closest(".motion-grid");
-      grid.querySelectorAll(".motion-card").forEach(card => card.classList.remove("active"));
-      input.closest(".motion-card").classList.add("active");
-      note(`${prefix}：${input.closest(".motion-card").querySelector("b").textContent}`);
+      const grid = input.closest(".template-library");
+      grid.querySelectorAll(".template-card").forEach(card => card.classList.remove("active"));
+      input.closest(".template-card").classList.add("active");
+      note(`${prefix}：${input.closest(".template-card").querySelector("b").textContent}`);
     });
   });
 }
 
 bindCardGroup("editStyle", "已选择剪辑模板");
-bindCardGroup("motion", "已选择动效 Skill");
 
 $("#analyzeBtn").addEventListener("click", async () => {
   try {

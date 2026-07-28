@@ -171,14 +171,29 @@ EDIT_STYLES = {
         "max_chars": 18,
     },
     "jianying_big": {
-        "name": "剪映感·大字弹跳",
+        "name": "剪映经典·大字弹跳",
         "description": "超大白字、黑描边、重点黄字和快速弹入",
         "max_chars": 8,
     },
+    "jianying_clean": {
+        "name": "剪映经典·清透标题",
+        "description": "清透玻璃字幕、蓝色重点词和稳定轻推镜头",
+        "max_chars": 12,
+    },
     "kaipai_talk": {
-        "name": "开拍感·口播重点",
+        "name": "开拍·口播重点",
         "description": "单屏短句、重点色块和轻推入场",
         "max_chars": 10,
+    },
+    "kaipai_boss": {
+        "name": "开拍·老板观点",
+        "description": "观点型大字、暖色重点词和稳定人物聚焦",
+        "max_chars": 9,
+    },
+    "kaipai_story": {
+        "name": "开拍·故事叙述",
+        "description": "电影感双行字幕、柔和暖白字和呼吸推镜",
+        "max_chars": 14,
     },
     "keyword_punch": {
         "name": "卡点快切·冲击字幕",
@@ -323,8 +338,15 @@ def draw_rich_line(
 def title_overlay(title: str, path: Path) -> None:
     canvas = Image.new("RGBA", (1080, 1920), (0, 0, 0, 0))
     draw = ImageDraw.Draw(canvas)
-    draw.rounded_rectangle((54, 64, 1026, 286), 28, fill=(8, 10, 16, 222), outline=(46, 240, 220, 180), width=3)
-    draw.text((88, 92), "AI VIDEO ENGINE", font=font(25, True), fill=(70, 246, 222, 255))
+    draw.rounded_rectangle(
+        (54, 64, 1026, 286),
+        34,
+        fill=(18, 18, 22, 218),
+        outline=(255, 255, 255, 42),
+        width=2,
+    )
+    draw.rounded_rectangle((86, 92, 220, 130), 19, fill=(10, 132, 255, 255))
+    draw.text((108, 99), "AI VIDEO", font=font(19, True), fill="white")
     title_text = wrap_caption(title, 14)[:34]
     draw.multiline_text((86, 142), title_text, font=font(54, True), fill="white", spacing=4)
     canvas.save(path)
@@ -353,6 +375,43 @@ def caption_overlay(text: str, path: Path, editing_style: str = "classic") -> No
         for line in lines:
             draw_rich_line(draw, line, y, text_font, (68, 241, 218, 255), 6)
             y += 108
+        canvas.save(path)
+        return
+    if editing_style == "jianying_clean":
+        lines = [text[index:index + 12] for index in range(0, len(text), 12)][:2]
+        text_font = font(76, True)
+        y = 1350 - (len(lines) - 1) * 48
+        draw.rounded_rectangle(
+            (58, y - 28, 1022, y + len(lines) * 94 + 10),
+            28,
+            fill=(18, 20, 28, 188),
+            outline=(255, 255, 255, 45),
+            width=2,
+        )
+        for line in lines:
+            draw_rich_line(draw, line, y, text_font, (84, 169, 255, 255), 4)
+            y += 94
+        canvas.save(path)
+        return
+    if editing_style == "kaipai_boss":
+        lines = [text[index:index + 9] for index in range(0, len(text), 9)][:2]
+        text_font = font(98, True)
+        y = 1030 - (len(lines) - 1) * 60
+        draw.rounded_rectangle((52, y - 28, 1028, y + len(lines) * 120 + 8), 22, fill=(4, 5, 8, 220))
+        draw.rounded_rectangle((52, y - 28, 68, y + len(lines) * 120 + 8), 8, fill=(255, 159, 64, 255))
+        for line in lines:
+            draw_rich_line(draw, line, y, text_font, (255, 174, 76, 255), 7)
+            y += 120
+        canvas.save(path)
+        return
+    if editing_style == "kaipai_story":
+        lines = [text[index:index + 14] for index in range(0, len(text), 14)][:2]
+        text_font = font(66, True)
+        y = 1450 - (len(lines) - 1) * 42
+        draw.rounded_rectangle((72, y - 24, 1008, y + len(lines) * 82 + 8), 18, fill=(0, 0, 0, 165))
+        for line in lines:
+            draw_rich_line(draw, line, y, text_font, (255, 218, 164, 255), 3)
+            y += 82
         canvas.save(path)
         return
     if editing_style == "keyword_punch":
@@ -400,13 +459,13 @@ def caption_animation_filter(input_index: int, editing_style: str, start: float,
             f"fade=t=in:st=0:d=0.08:alpha=1,setpts=PTS-STARTPTS+{start:.3f}/TB[{label}]"
         )
         return chain, "(W-w)/2", "(H-h)/2"
-    if editing_style == "kaipai_talk":
+    if editing_style in {"kaipai_talk", "kaipai_boss"}:
         chain = (
             f"{source}format=rgba,fade=t=in:st=0:d=0.14:alpha=1,"
             f"setpts=PTS-STARTPTS+{start:.3f}/TB[{label}]"
         )
         return chain, "0", f"if(lt(t-{start:.3f},0.18),30*(1-(t-{start:.3f})/0.18),0)"
-    if editing_style == "knowledge_highlight":
+    if editing_style in {"jianying_clean", "kaipai_story", "knowledge_highlight"}:
         chain = (
             f"{source}format=rgba,fade=t=in:st=0:d=0.10:alpha=1,"
             f"setpts=PTS-STARTPTS+{start:.3f}/TB[{label}]"
