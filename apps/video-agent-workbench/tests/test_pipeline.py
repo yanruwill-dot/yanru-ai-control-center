@@ -3,6 +3,7 @@ import unittest
 from pathlib import Path
 
 from pipeline import (
+    AUDIO_NORMALIZATION,
     EDIT_STYLES,
     MOTION_PRESETS,
     PipelineError,
@@ -18,6 +19,10 @@ from voice_clone import VoiceCloneError, audio_probe, voice_id_for
 
 
 class PipelineUnitTests(unittest.TestCase):
+    def test_audio_is_normalized_for_social_video(self):
+        self.assertIn("I=-16", AUDIO_NORMALIZATION)
+        self.assertIn("TP=-1.5", AUDIO_NORMALIZATION)
+
     def test_split_script_preserves_content(self):
         text = "第一句话很重要。第二句话继续解释！最后给行动。"
         lines = split_script(text, max_chars=9)
