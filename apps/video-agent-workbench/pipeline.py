@@ -207,6 +207,8 @@ EDIT_STYLES = {
     },
 }
 
+AUDIO_NORMALIZATION = "loudnorm=I=-16:TP=-1.5:LRA=11"
+
 
 def motion_filter(preset: str) -> str:
     if preset not in MOTION_PRESETS:
@@ -569,7 +571,8 @@ def render_video(
     command += [
         "-filter_complex", ";".join(filters), "-map", f"[{previous}]", "-map", f"{audio_index}:a:0",
         "-t", f"{voice_duration:.3f}", "-r", "30", "-c:v", "libx264", "-preset", "veryfast",
-        "-c:a", "aac", "-b:a", "192k", "-pix_fmt", "yuv420p", "-movflags", "+faststart", str(final)
+        "-af", AUDIO_NORMALIZATION, "-c:a", "aac", "-b:a", "192k",
+        "-pix_fmt", "yuv420p", "-movflags", "+faststart", str(final)
     ]
     run(command, log)
     emit(88, "正在全片解码验证")
