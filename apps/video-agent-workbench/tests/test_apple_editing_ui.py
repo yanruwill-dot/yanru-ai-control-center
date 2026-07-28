@@ -40,6 +40,8 @@ class AppleEditingUITests(unittest.TestCase):
         html = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
         self.assertIn("./styles.css?v=1.5.1", html)
         self.assertIn("./app.js?v=1.5.1", html)
+        wrapper = (ROOT.parents[1] / "video-agent-workbench" / "index.html").read_text(encoding="utf-8")
+        self.assertIn('../apps/video-agent-workbench/static/?v=1.5.1', wrapper)
 
 
 if __name__ == "__main__":
