@@ -28,7 +28,7 @@ class AppleEditingUITests(unittest.TestCase):
         script = (ROOT / "static" / "app.js").read_text(encoding="utf-8")
         self.assertIn("MOTION_BY_STYLE", script)
         self.assertNotIn('input[name="motion"]', script)
-        self.assertIn("viral-video-agent-workbench-v1.5.1.zip", script)
+        self.assertIn("viral-video-agent-workbench-v1.6.0.zip", script)
 
     def test_layout_does_not_force_desktop_width(self):
         css = (ROOT / "static" / "styles.css").read_text(encoding="utf-8")
@@ -38,10 +38,22 @@ class AppleEditingUITests(unittest.TestCase):
 
     def test_static_assets_are_cache_busted(self):
         html = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
-        self.assertIn("./styles.css?v=1.5.1", html)
-        self.assertIn("./app.js?v=1.5.1", html)
+        self.assertIn("./styles.css?v=1.6.0", html)
+        self.assertIn("./app.js?v=1.6.0", html)
         wrapper = (ROOT.parents[1] / "video-agent-workbench" / "index.html").read_text(encoding="utf-8")
-        self.assertIn('../apps/video-agent-workbench/static/?v=1.5.1', wrapper)
+        self.assertIn('../apps/video-agent-workbench/static/?v=1.6.0', wrapper)
+
+    def test_mobile_workbench_has_native_touch_navigation_and_connection_sheet(self):
+        html = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
+        css = (ROOT / "static" / "styles.css").read_text(encoding="utf-8")
+        script = (ROOT / "static" / "app.js").read_text(encoding="utf-8")
+        self.assertIn('class="mobile-dock"', html)
+        self.assertIn('id="mobileGenerateBtn"', html)
+        self.assertIn('id="connectionSheet"', html)
+        self.assertIn("env(safe-area-inset-bottom)", css)
+        self.assertIn("font-size: 16px", css)
+        self.assertIn('localStorage.setItem("video-agent-api"', script)
+        self.assertIn("isAllowedConnectionOrigin", script)
 
 
 if __name__ == "__main__":

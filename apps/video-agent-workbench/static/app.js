@@ -1,13 +1,23 @@
 const $ = (selector) => document.querySelector(selector);
 const connection = new URLSearchParams(location.hash.replace(/^#/, ""));
-const requestedOrigin = connection.get("api") || "";
 const LOCAL_ENGINE_ORIGIN = "http://127.0.0.1:8788";
-const API_ORIGIN = /^https:\/\/[A-Za-z0-9.-]+(?::\d+)?$/.test(requestedOrigin)
-  ? requestedOrigin.replace(/\/$/, "")
-  : location.hostname.endsWith("github.io")
-    ? LOCAL_ENGINE_ORIGIN
-    : "";
-const API_KEY = connection.get("key") || "";
+const savedOrigin = localStorage.getItem("video-agent-api") || "";
+const savedKey = localStorage.getItem("video-agent-key") || "";
+let requestedOrigin = connection.get("api") || savedOrigin;
+let API_ORIGIN = resolveOrigin(requestedOrigin);
+let API_KEY = connection.get("key") || savedKey;
+
+function resolveOrigin(origin) {
+  const value = String(origin || "").trim().replace(/\/$/, "");
+  if (isAllowedConnectionOrigin(value)) return value;
+  return location.hostname.endsWith("github.io") ? LOCAL_ENGINE_ORIGIN : "";
+}
+
+function isAllowedConnectionOrigin(value) {
+  return /^https:\/\/[A-Za-z0-9.-]+(?::\d+)?$/.test(value)
+    || /^http:\/\/(127\.0\.0\.1|localhost)(?::\d+)?$/.test(value);
+}
+
 const apiUrl = (path) => `${API_ORIGIN}${path}`;
 const apiFetch = (path, options = {}) => {
   const headers = new Headers(options.headers || {});
@@ -49,6 +59,7 @@ function setProgress(value, message) {
   progressBar.style.width = `${safe}%`;
   progressText.textContent = `${safe}%`;
   jobState.textContent = message || "处理中";
+  $("#mobileProgress").textContent = safe ? `${safe}% · ${message || "处理中"}` : message || "等待任务";
 }
 
 function runUrl(jobId, name) {
@@ -81,13 +92,22 @@ async function health() {
     const data = await response.json();
     if (!data.ok) throw new Error("服务未就绪");
     $("#health").classList.add("ok");
+    $("#health").classList.remove("error");
     $("#health").innerHTML = requestedOrigin
       ? "<i></i>HTTPS 视频与声音引擎已就绪"
       : "<i></i>长期生成引擎已连接";
     const clone = data.voice_clone || {};
     $("#cloneEngine").textContent = clone.clone_enabled ? "MiniMax 已连接" : "克隆引擎未配置";
+    $("#connectionState").textContent = `连接成功 · ${API_ORIGIN || "当前站点"}`;
+    $("#connectionState").classList.remove("error");
+    return true;
   } catch {
+    $("#health").classList.remove("ok");
+    $("#health").classList.add("error");
     $("#health").innerHTML = "<i></i>长期生成引擎正在恢复 · 请稍后重试";
+    $("#connectionState").textContent = "未连接。手机使用时请填写可访问的 HTTPS 引擎地址。";
+    $("#connectionState").classList.add("error");
+    return false;
   }
 }
 
@@ -305,6 +325,11 @@ $("#generateBtn").addEventListener("click", async () => {
   }
 });
 
+$("#mobileGenerateBtn").addEventListener("click", () => {
+  $("#launchStep").scrollIntoView({ behavior: "smooth", block: "start" });
+  $("#generateBtn").click();
+});
+
 $("#useTranscript").addEventListener("click", () => {
   if (!state.transcript) {
     note("请先运行“AI 拆解与转写”");
@@ -336,12 +361,76 @@ $("#script").dispatchEvent(new Event("input"));
 
 $("#openRuns").addEventListener("click", () => {
   if (API_ORIGIN) {
-    location.href = "../../../video-agent-workbench/downloads/viral-video-agent-workbench-v1.5.1.zip";
+    location.href = "../../../video-agent-workbench/downloads/viral-video-agent-workbench-v1.6.0.zip";
     return;
   }
   note("产物目录：outputs/video-agent-workbench-v1/runs");
 });
 
-health();
+function openConnectionSheet() {
+  $("#apiOriginInput").value = API_ORIGIN || "";
+  $("#apiKeyInput").value = API_KEY || "";
+  $("#connectionSheet").classList.add("open");
+  $("#connectionSheet").setAttribute("aria-hidden", "false");
+}
+
+function closeConnectionSheet() {
+  $("#connectionSheet").classList.remove("open");
+  $("#connectionSheet").setAttribute("aria-hidden", "true");
+}
+
+$("#connectionBtn").addEventListener("click", openConnectionSheet);
+$("#closeConnection").addEventListener("click", closeConnectionSheet);
+$("#saveConnection").addEventListener("click", async () => {
+  const origin = $("#apiOriginInput").value.trim().replace(/\/$/, "");
+  const key = $("#apiKeyInput").value.trim();
+  if (!origin || !isAllowedConnectionOrigin(origin)) {
+    $("#connectionState").textContent = "请输入完整的 HTTPS 地址，例如 https://video-api.example.com";
+    $("#connectionState").classList.add("error");
+    return;
+  }
+  const resolved = resolveOrigin(origin);
+  if (!/^https:\/\//.test(resolved) && !/^http:\/\/(127\.0\.0\.1|localhost)/.test(resolved)) {
+    $("#connectionState").textContent = "手机端只能使用 HTTPS 地址。";
+    $("#connectionState").classList.add("error");
+    return;
+  }
+  requestedOrigin = origin;
+  API_ORIGIN = resolved;
+  API_KEY = key;
+  localStorage.setItem("video-agent-api", API_ORIGIN);
+  localStorage.setItem("video-agent-key", API_KEY);
+  const connected = await health();
+  if (!connected) return;
+  await loadVoices().catch(error => note(`声音库：${error.message}`));
+  await loadLatest();
+  closeConnectionSheet();
+  note(`生成引擎已切换：${API_ORIGIN}`);
+});
+
+const dockLinks = [...document.querySelectorAll(".mobile-dock a")];
+dockLinks.forEach(link => {
+  link.addEventListener("click", () => {
+    dockLinks.forEach(item => item.classList.toggle("active", item === link));
+  });
+});
+
+if ("IntersectionObserver" in window) {
+  const sections = dockLinks.map(link => document.querySelector(link.getAttribute("href"))).filter(Boolean);
+  const observer = new IntersectionObserver(entries => {
+    const visible = entries
+      .filter(entry => entry.isIntersecting)
+      .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+    if (!visible) return;
+    dockLinks.forEach(link => link.classList.toggle("active", link.getAttribute("href") === `#${visible.target.id}`));
+  }, { rootMargin: "-20% 0px -62% 0px", threshold: [0.05, 0.35] });
+  sections.forEach(section => observer.observe(section));
+}
+
+health().then(connected => {
+  if (!connected && matchMedia("(max-width: 900px)").matches && !savedOrigin && !connection.get("api")) {
+    openConnectionSheet();
+  }
+});
 loadVoices().catch(error => note(`声音库：${error.message}`));
 loadLatest();
