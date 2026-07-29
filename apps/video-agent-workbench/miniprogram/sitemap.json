@@ -1,0 +1,9 @@
+{
+  "desc": "一键追爆 AI 视频工作台",
+  "rules": [
+    {
+      "action": "allow",
+      "page": "pages/studio/index"
+    }
+  ]
+}

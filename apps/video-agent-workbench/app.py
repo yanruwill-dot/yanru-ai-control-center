@@ -2,8 +2,10 @@
 from __future__ import annotations
 
 import argparse
+import hmac
 import json
 import mimetypes
+import os
 import re
 import threading
 import time
@@ -29,6 +31,12 @@ VOICES.mkdir(exist_ok=True)
 JOBS: dict[str, dict] = {}
 LOCK = threading.Lock()
 GITHUB_PAGES_ORIGIN = "https://yanruwill-dot.github.io"
+API_KEY = os.environ.get("VIDEO_AGENT_API_KEY", "").strip()
+ALLOWED_ORIGINS = {
+    item.strip()
+    for item in os.environ.get("VIDEO_AGENT_ALLOWED_ORIGINS", GITHUB_PAGES_ORIGIN).split(",")
+    if item.strip()
+}
 
 
 def save_job(job_id: str) -> None:
@@ -113,12 +121,27 @@ class Handler(BaseHTTPRequestHandler):
     server_version = "ViralVideoWorkbench/1.0"
 
     def send_cors_headers(self) -> None:
-        if self.headers.get("Origin") == GITHUB_PAGES_ORIGIN:
-            self.send_header("Access-Control-Allow-Origin", GITHUB_PAGES_ORIGIN)
+        origin = self.headers.get("Origin", "")
+        if origin in ALLOWED_ORIGINS:
+            self.send_header("Access-Control-Allow-Origin", origin)
             self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-            self.send_header("Access-Control-Allow-Headers", "Content-Type")
+            self.send_header("Access-Control-Allow-Headers", "Content-Type, X-Video-Agent-Key")
             self.send_header("Access-Control-Allow-Private-Network", "true")
             self.send_header("Vary", "Origin")
+
+    def is_authorized(self) -> bool:
+        if not API_KEY:
+            return True
+        supplied = self.headers.get("X-Video-Agent-Key", "")
+        if not supplied:
+            supplied = parse_qs(urlparse(self.path).query).get("key", [""])[0]
+        return hmac.compare_digest(supplied, API_KEY)
+
+    def require_authorized(self) -> bool:
+        if self.is_authorized():
+            return True
+        self.send_json({"ok": False, "error": "引擎访问密钥无效，请重新运行桌面启动器"}, 401)
+        return False
 
     def send_json(self, value: dict, status: int = 200) -> None:
         body = json.dumps(value, ensure_ascii=False).encode("utf-8")
@@ -135,6 +158,63 @@ class Handler(BaseHTTPRequestHandler):
             raise PipelineError("JSON 请求过大")
         raw = self.rfile.read(length)
         return json.loads(raw.decode("utf-8") or "{}")
+
+    def read_multipart_upload(self, target: Path, max_file_bytes: int) -> None:
+        content_type = self.headers.get("Content-Type", "")
+        match = re.search(r'boundary=(?:"([^"]+)"|([^;]+))', content_type)
+        if not match:
+            raise PipelineError("上传请求缺少 multipart boundary")
+        boundary_text = (match.group(1) or match.group(2) or "").strip()
+        if not boundary_text or len(boundary_text) > 200:
+            raise PipelineError("上传 boundary 无效")
+        boundary = b"--" + boundary_text.encode("ascii", "strict")
+        content_length = int(self.headers.get("Content-Length", "0"))
+        if content_length <= 0 or content_length > max_file_bytes + 1024 * 1024:
+            raise PipelineError("上传大小无效")
+
+        remaining = content_length
+
+        def read_line() -> bytes:
+            nonlocal remaining
+            line = self.rfile.readline(min(65536, remaining + 1))
+            remaining -= len(line)
+            return line
+
+        if read_line().rstrip(b"\r\n") != boundary:
+            raise PipelineError("multipart 请求起始边界无效")
+        while True:
+            line = read_line()
+            if not line:
+                raise PipelineError("multipart 请求头不完整")
+            if line in {b"\r\n", b"\n"}:
+                break
+
+        marker = b"\r\n" + boundary
+        buffer = b""
+        found_boundary = False
+        try:
+            with target.open("wb") as stream:
+                while remaining > 0:
+                    chunk = self.rfile.read(min(1024 * 1024, remaining))
+                    if not chunk:
+                        break
+                    remaining -= len(chunk)
+                    buffer += chunk
+                    marker_at = buffer.find(marker)
+                    if marker_at >= 0:
+                        stream.write(buffer[:marker_at])
+                        found_boundary = True
+                        break
+                    keep = len(marker) + 8
+                    if len(buffer) > keep:
+                        stream.write(buffer[:-keep])
+                        buffer = buffer[-keep:]
+            size = target.stat().st_size if target.exists() else 0
+            if not found_boundary or size <= 0 or size > max_file_bytes:
+                raise PipelineError("multipart 文件内容无效")
+        except Exception:
+            target.unlink(missing_ok=True)
+            raise
 
     def serve_file(self, path: Path) -> None:
         if not path.is_file():
@@ -159,11 +239,13 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self) -> None:
         parsed = urlparse(self.path)
         path = unquote(parsed.path)
+        if path.startswith(("/api/", "/runs/", "/voices/")) and not self.require_authorized():
+            return
         if path == "/api/health":
             self.send_json({
                 "ok": True,
                 "service": "一键追爆视频工作台",
-                "version": "1.3.0",
+                "version": "1.6.0",
                 "voice_clone": engine_status(),
             })
             return
@@ -223,6 +305,8 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self) -> None:
         parsed = urlparse(self.path)
         try:
+            if parsed.path.startswith("/api/") and not self.require_authorized():
+                return
             if parsed.path == "/api/upload":
                 query = parse_qs(parsed.query)
                 original = Path(query.get("name", ["video.mp4"])[0]).name
@@ -244,6 +328,17 @@ class Handler(BaseHTTPRequestHandler):
                         remaining -= len(chunk)
                 self.send_json({"ok": True, "path": str(target), "bytes": target.stat().st_size})
                 return
+            if parsed.path == "/api/upload-file":
+                query = parse_qs(parsed.query)
+                original = Path(query.get("name", ["video.mp4"])[0]).name
+                safe = re.sub(r"[^A-Za-z0-9._-]+", "-", original)
+                suffix = Path(safe).suffix.lower()
+                if suffix not in {".mp4", ".mov", ".m4v", ".avi", ".mkv", ".webm"}:
+                    raise PipelineError("上传文件不是支持的视频格式")
+                target = UPLOADS / f"{uuid.uuid4().hex[:10]}-{safe}"
+                self.read_multipart_upload(target, 2_000_000_000)
+                self.send_json({"ok": True, "path": str(target), "bytes": target.stat().st_size})
+                return
             if parsed.path == "/api/upload-audio":
                 query = parse_qs(parsed.query)
                 original = Path(query.get("name", ["voice.wav"])[0]).name
@@ -263,6 +358,21 @@ class Handler(BaseHTTPRequestHandler):
                         stream.write(chunk)
                         remaining -= len(chunk)
                 info = audio_probe(target)
+                self.send_json({"ok": True, **info})
+                return
+            if parsed.path == "/api/upload-audio-file":
+                query = parse_qs(parsed.query)
+                original = Path(query.get("name", ["voice.wav"])[0]).name
+                safe = re.sub(r"[^A-Za-z0-9._-]+", "-", original)
+                if Path(safe).suffix.lower() not in {".mp3", ".m4a", ".wav"}:
+                    raise PipelineError("声音样本仅支持 MP3、M4A、WAV")
+                target = VOICE_UPLOADS / f"{uuid.uuid4().hex[:10]}-{safe}"
+                self.read_multipart_upload(target, 20 * 1024 * 1024)
+                try:
+                    info = audio_probe(target)
+                except Exception:
+                    target.unlink(missing_ok=True)
+                    raise
                 self.send_json({"ok": True, **info})
                 return
             if parsed.path in {"/api/analyze", "/api/autocut", "/api/generate", "/api/clone"}:
