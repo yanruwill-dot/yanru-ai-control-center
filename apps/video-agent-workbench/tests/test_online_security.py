@@ -1,4 +1,5 @@
 import json
+import uuid
 import threading
 import unittest
 import urllib.error
@@ -65,6 +66,31 @@ class OnlineSecurityTests(unittest.TestCase):
                 "X-Video-Agent-Key",
                 response.headers["Access-Control-Allow-Headers"],
             )
+
+    def test_miniapp_multipart_video_upload(self):
+        boundary = f"----CodexMiniapp{uuid.uuid4().hex}"
+        payload = b"fake-video-bytes"
+        body = (
+            f"--{boundary}\r\n"
+            'Content-Disposition: form-data; name="file"; filename="sample.mp4"\r\n'
+            "Content-Type: video/mp4\r\n\r\n"
+        ).encode() + payload + f"\r\n--{boundary}--\r\n".encode()
+        request = urllib.request.Request(
+            f"{self.origin}/api/upload-file?name=sample.mp4",
+            method="POST",
+            data=body,
+            headers={
+                "X-Video-Agent-Key": "test-online-key",
+                "Content-Type": f"multipart/form-data; boundary={boundary}",
+            },
+        )
+        with urllib.request.urlopen(request) as response:
+            result = json.load(response)
+        path = app.Path(result["path"])
+        try:
+            self.assertEqual(path.read_bytes(), payload)
+        finally:
+            path.unlink(missing_ok=True)
 
 
 if __name__ == "__main__":
